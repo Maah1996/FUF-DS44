@@ -207,6 +207,42 @@ body.gated{overflow:hidden}
 .fbar button.danger{color:var(--danger)}
 .fbar button.danger:hover{border-color:var(--danger)}
 
+/* PANEL ADMIN */
+.admin-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.admin-head h2{margin:0;font-size:1.15rem}
+.admin-head .mini{margin-left:auto;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:8px 12px;font-weight:600;font-size:.82rem}
+.admin-head .mini:hover{border-color:var(--brand)}
+.admin-hint{color:var(--muted);font-size:.82rem;margin:0 0 14px}
+.urow{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:12px;margin-bottom:9px}
+.uinfo{flex:1;min-width:0}
+.unm{font-weight:600;font-size:.94rem;display:flex;align-items:center;gap:6px}
+.tagadm{font-size:.64rem;font-weight:700;background:var(--warning);color:#fff;border-radius:5px;padding:1px 6px}
+.usub{font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.umeta{font-size:.76rem;color:var(--muted);margin-top:3px}
+.upct{font-weight:700;font-size:1.05rem;min-width:46px;text-align:right}
+.uview{flex:0 0 auto;background:var(--brand);color:#fff;border:0;border-radius:9px;padding:9px 15px;font-weight:600;font-size:.84rem}
+:root.dark .uview{background:#2563EB}
+
+/* MODAL admin */
+#adminModal{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55)}
+.am-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.am-head{display:flex;align-items:flex-start;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border)}
+.am-title{font-weight:700;font-size:1.05rem}
+.am-sub{font-size:.78rem;color:var(--muted);margin-top:3px}
+.am-x{margin-left:auto;background:var(--surface2);border:0;color:var(--text);border-radius:8px;width:30px;height:30px;font-size:.95rem;flex:0 0 auto}
+.am-score{padding:11px 18px;font-size:.82rem;color:var(--muted);border-bottom:1px solid var(--border)}
+.am-body{padding:6px 14px 10px;overflow-y:auto;flex:1}
+.am-mod{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:13px 4px 5px}
+.am-q{display:flex;align-items:flex-start;gap:9px;padding:8px 6px;border-bottom:1px solid var(--border)}
+.am-n{flex:0 0 auto;width:22px;height:22px;border-radius:6px;background:var(--surface2);color:var(--muted);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.am-qt{flex:1;font-size:.82rem;line-height:1.4}
+.am-plan{font-size:.72rem;color:var(--muted);margin-top:3px;font-style:italic}
+.am-chip{flex:0 0 auto;font-size:.68rem;font-weight:700;color:#fff;border-radius:6px;padding:3px 8px;white-space:nowrap;align-self:center}
+.am-chip.pend{background:var(--surface2);color:var(--muted)}
+.am-actions{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border)}
+.am-actions button{flex:1;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:11px;font-weight:600;font-size:.86rem}
+.am-actions button:hover{border-color:var(--brand)}
+
 @media (min-width:640px){ .hdrfields{grid-template-columns:repeat(4,1fr)} }
 @media (max-width:520px){ header.top .brand span{display:none} }
 
@@ -270,6 +306,22 @@ body.gated{overflow:hidden}
   </div>
 </div>
 
+<!-- MODAL: ver fiscalización de un usuario (admin) -->
+<div id="adminModal">
+  <div class="am-card">
+    <div class="am-head">
+      <div><div class="am-title" id="am-title"></div><div class="am-sub" id="am-sub"></div></div>
+      <button class="am-x" id="am-close" title="Cerrar">✕</button>
+    </div>
+    <div class="am-score" id="am-score"></div>
+    <div class="am-body" id="am-body"></div>
+    <div class="am-actions">
+      <button id="am-print">🖶 Imprimir</button>
+      <button id="am-export">⬇ Descargar</button>
+    </div>
+  </div>
+</div>
+
 <header class="top">
   <div class="brand">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
@@ -292,6 +344,7 @@ body.gated{overflow:hidden}
   <button data-view="Fiscalizacion" class="active">Fiscalización</button>
   <button data-view="Biblioteca">Biblioteca Normativa</button>
   <button data-view="IA">Asistente IA</button>
+  <button data-view="Admin" id="tabAdmin" style="display:none">Panel Admin</button>
 </nav>
 
 <div class="scorebar" id="scorebar">
@@ -365,6 +418,16 @@ body.gated{overflow:hidden}
     </div>
   </section>
 
+  <!-- PANEL ADMIN -->
+  <section class="view" id="viewAdmin">
+    <div class="admin-head">
+      <h2>Panel de administrador</h2>
+      <button id="adminReload" class="mini">↻ Actualizar</button>
+    </div>
+    <p class="admin-hint">Fiscalizaciones de todos los usuarios registrados. Toca <b>Ver</b> para revisar, imprimir o descargar la de cada uno.</p>
+    <div id="adminList"></div>
+  </section>
+
   <!-- PRINT DOC -->
   <div id="printdoc"></div>
 </main>
@@ -413,10 +476,10 @@ function startApp(){
   openDB().then(renderDocs).catch(()=>{$('#docempty').textContent='Tu navegador no soporta almacenamiento de archivos.';});
 }
 function showPortada(){ $('#portada').style.display='flex'; $('#loginov').style.display='none'; document.body.classList.add('gated');
-  $('#rolebadge').classList.remove('on'); $('#logoutbtn').classList.remove('on'); }
+  $('#rolebadge').classList.remove('on'); $('#logoutbtn').classList.remove('on'); $('#tabAdmin').style.display='none'; $('#adminModal').style.display='none'; }
 function enterApp(){ $('#portada').style.display='none'; $('#loginov').style.display='none'; document.body.classList.remove('gated');
   const rb=$('#rolebadge'); rb.textContent=isAdmin?'Administrador':'Usuario'; rb.classList.add('on'); rb.classList.toggle('adm',isAdmin);
-  $('#logoutbtn').classList.add('on'); }
+  $('#logoutbtn').classList.add('on'); $('#tabAdmin').style.display=isAdmin?'':'none'; }
 function authMsg(e){const c=(e&&e.code)||'';const m={
   'auth/invalid-email':'Correo inválido.','auth/user-not-found':'No existe una cuenta con ese correo.',
   'auth/wrong-password':'Contraseña incorrecta.','auth/invalid-credential':'Correo o contraseña incorrectos.',
@@ -575,7 +638,7 @@ function switchView(v){
   $$('.view').forEach(s=>s.classList.toggle('active',s.id==='view'+v));
   $('#scorebar').style.display=v==='Fiscalizacion'?'':'none';
 }
-$$('nav.tabs button').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+$$('nav.tabs button').forEach(b=>b.onclick=()=>{ b.dataset.view==='Admin'?openAdmin():switchView(b.dataset.view); });
 
 /* ---------- theme + font ---------- */
 const themeK='fuf_theme',fsK='fuf_fs';
@@ -591,15 +654,18 @@ function conn(){$('#conn').classList.toggle('off',!navigator.onLine);$('#conn').
 addEventListener('online',conn);addEventListener('offline',conn);conn();
 
 /* ---------- print ---------- */
-$('#printbtn').onclick=()=>{buildPrint();window.print();};
-function buildPrint(){
-  const h=state.header;
+$('#printbtn').onclick=()=>{buildPrint(state.header,null);window.print();};
+function buildPrint(h,answers){
+  h=h||{};
+  const cell=id=>{ if(!answers) return '[ ] C&nbsp;&nbsp;[ ] NC&nbsp;&nbsp;[ ] NA';
+    const e=(answers[id]||{}).estado, m=v=>e===v?'X':'&nbsp;';
+    return '['+m('cumple')+'] C&nbsp;&nbsp;['+m('no_cumple')+'] NC&nbsp;&nbsp;['+m('no_aplica')+'] NA'; };
   let rows='';
   Object.keys(MODULES).map(Number).sort((a,b)=>a-b).forEach(m=>{
     rows+=`<tr class="modrow"><td colspan="3">${esc(MODULES[m].n)}</td></tr>`;
     MODULES[m].items.forEach(q=>{
       rows+=`<tr><td style="text-align:center">${q.id}</td><td>${esc(q.pregunta)}<br><i style="font-size:8pt">${esc(q.articulo)}</i></td>
-      <td class="chk">[ ] C&nbsp;&nbsp;[ ] NC&nbsp;&nbsp;[ ] NA</td></tr>`;
+      <td class="chk">${cell(q.id)}</td></tr>`;
     });
   });
   $('#printdoc').innerHTML=`
@@ -751,15 +817,74 @@ function hydrateUI(){
 }
 
 /* ---------- Descargar / Cargar checklist (terreno) ---------- */
-function fiscStats(){ let c=0,nc=0,na=0; FUF_DATA.forEach(q=>{const e=(state.answers[q.id]||{}).estado; if(e==='cumple')c++;else if(e==='no_cumple')nc++;else if(e==='no_aplica')na++;});
+function statsOf(answers){ let c=0,nc=0,na=0; FUF_DATA.forEach(q=>{const e=(answers[q.id]||{}).estado; if(e==='cumple')c++;else if(e==='no_cumple')nc++;else if(e==='no_aplica')na++;});
   const den=FUF_DATA.length-na; return {c,nc,na,pend:FUF_DATA.length-c-nc-na,pct:den>0?Math.round(c/den*100):0}; }
-function exportChecklist(){
-  const payload={_app:'FUF-DS44',_version:1,exportadoEl:new Date().toISOString(),header:state.header,answers:state.answers};
+function fiscStats(){ return statsOf(state.answers); }
+function exportData(header,answers){
+  header=header||{};
+  const payload={_app:'FUF-DS44',_version:1,exportadoEl:new Date().toISOString(),header,answers:answers||{}};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const emp=(state.header.empresa||'fiscalizacion').replace(/[^a-z0-9]+/gi,'_').slice(0,32).replace(/^_|_$/g,'')||'fiscalizacion';
-  const fch=state.header.fecha||new Date().toISOString().slice(0,10);
+  const emp=(header.empresa||'fiscalizacion').replace(/[^a-z0-9]+/gi,'_').slice(0,32).replace(/^_|_$/g,'')||'fiscalizacion';
+  const fch=header.fecha||new Date().toISOString().slice(0,10);
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='FUF_'+emp+'_'+fch+'.json';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function exportChecklist(){ exportData(state.header,state.answers); }
+
+/* ---------- Panel administrador ---------- */
+function openAdmin(){ switchView('Admin'); loadAdminList(); }
+function estadoChip(e){ const m={cumple:['Cumple','var(--success)'],no_cumple:['No cumple','var(--danger)'],no_aplica:['N/A','var(--muted)']}; const x=m[e];
+  return x?('<span class="am-chip" style="background:'+x[1]+'">'+x[0]+'</span>'):'<span class="am-chip pend">Pendiente</span>'; }
+function loadAdminList(){
+  const box=$('#adminList'); box.innerHTML='<p class="empty">Cargando usuarios…</p>';
+  if(!authOn||typeof firebase==='undefined'){ box.innerHTML='<p class="empty">El panel requiere Firebase configurado.</p>'; return; }
+  const db=firebase.firestore();
+  Promise.all([db.collection('fuf_ds44_users').get(),db.collection('fuf_ds44').get()]).then(([pu,da])=>{
+    const map={};
+    pu.forEach(x=>{(map[x.id]=map[x.id]||{}).p=x.data();});
+    da.forEach(x=>{(map[x.id]=map[x.id]||{}).d=x.data();});
+    const uids=Object.keys(map);
+    if(!uids.length){ box.innerHTML='<p class="empty">Aún no hay usuarios registrados.</p>'; return; }
+    uids.sort((a,b)=>((map[b].d&&map[b].d.updatedAt)||0)-((map[a].d&&map[a].d.updatedAt)||0));
+    box.innerHTML='';
+    uids.forEach(uid=>{
+      const p=map[uid].p||{}, d=map[uid].d||{}, h=d.header||{}, s=statsOf(d.answers||{});
+      const nm=p.name||h.auditor||p.email||'(sin nombre)';
+      const col=s.pct>=85?'var(--success)':s.pct>=60?'var(--warning)':'var(--danger)';
+      const el=document.createElement('div'); el.className='urow';
+      el.innerHTML='<div class="uinfo"><div class="unm">'+esc(nm)+(p.role==='admin'?' <span class="tagadm">admin</span>':'')+
+        '</div><div class="usub">'+esc(p.email||'')+'</div><div class="umeta">'+esc(h.empresa||'—')+' · '+esc(h.faena||'—')+
+        (d.updatedAt?(' · '+new Date(d.updatedAt).toLocaleDateString('es-CL')):'')+'</div></div>'+
+        '<div class="upct" style="color:'+col+'">'+(d.answers?s.pct+'%':'—')+'</div><button class="uview">Ver</button>';
+      el.querySelector('.uview').onclick=()=>openUserModal(uid,nm,Object.assign({email:p.email||''},d));
+      box.appendChild(el);
+    });
+  }).catch(e=>{ box.innerHTML='<p class="empty">No se pudo cargar. ¿Publicaste las reglas de Firestore para fuf_ds44? ('+esc(e.message)+')</p>'; });
+}
+function openUserModal(uid,label,d){
+  if(d && d.answers!==undefined){ renderUserModal(label,d.email||'',d); }
+  else firebase.firestore().collection('fuf_ds44').doc(uid).get().then(s=>renderUserModal(label,(d&&d.email)||'',s.data()||{})).catch(()=>renderUserModal(label,'',{}));
+}
+function renderUserModal(label,email,d){
+  d=d||{}; const h=d.header||{}, ans=d.answers||{}, s=statsOf(ans);
+  $('#am-title').textContent=label;
+  $('#am-sub').textContent=[email,h.empresa,h.faena].filter(Boolean).join(' · ')||'Sin datos de cabecera';
+  const col=s.pct>=85?'var(--success)':s.pct>=60?'var(--warning)':'var(--danger)';
+  $('#am-score').innerHTML='Cumplimiento <b style="color:'+col+';font-size:1.05rem">'+(d.answers?s.pct+'%':'—')+'</b> · Cumple '+s.c+' · No cumple '+s.nc+' · N/A '+s.na+' · Pendiente '+s.pend;
+  let body='';
+  Object.keys(MODULES).map(Number).sort((a,b)=>a-b).forEach(m=>{
+    body+='<div class="am-mod">'+esc(MODULES[m].n)+'</div>';
+    MODULES[m].items.forEach(q=>{
+      const a=ans[q.id]||{}, pl=a.plan||{};
+      const extra=(pl.responsable||pl.fecha_limite||pl.observaciones)?
+        ('<div class="am-plan">Plan: '+esc(pl.responsable||'—')+(pl.fecha_limite?(' · '+esc(pl.fecha_limite)):'')+(pl.observaciones?(' · '+esc(pl.observaciones)):'')+'</div>'):'';
+      body+='<div class="am-q"><span class="am-n">'+q.id+'</span><span class="am-qt">'+esc(q.pregunta)+extra+'</span>'+estadoChip(a.estado)+'</div>';
+    });
+  });
+  $('#am-body').innerHTML=body; $('#am-body').scrollTop=0;
+  $('#am-print').onclick=()=>{ buildPrint(h,ans); window.print(); };
+  $('#am-export').onclick=()=>exportData(h,ans);
+  $('#adminModal').style.display='flex';
 }
 function importChecklist(file){
   const r=new FileReader();
@@ -782,6 +907,9 @@ function wireTools(){
   $('#btnCargar').onclick=()=>$('#importfile').click();
   $('#importfile').onchange=e=>{ if(e.target.files[0]) importChecklist(e.target.files[0]); e.target.value=''; };
   $('#btnVaciar').onclick=resetFisc;
+  $('#adminReload').onclick=loadAdminList;
+  $('#am-close').onclick=()=>$('#adminModal').style.display='none';
+  $('#adminModal').onclick=e=>{ if(e.target.id==='adminModal') $('#adminModal').style.display='none'; };
 }
 
 /* ---------- init ---------- */
