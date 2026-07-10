@@ -161,6 +161,52 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
 /* PRINT DOC (hidden on screen) */
 #printdoc{display:none}
 
+/* PORTADA + LOGIN */
+#portada,#loginov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:22px;
+  background:radial-gradient(1100px 560px at 50% -12%,rgba(37,99,235,.16),transparent),var(--bg)}
+body.gated{overflow:hidden}
+.portada-card{max-width:440px;width:100%;text-align:center}
+.portada-logo{width:66px;height:66px;margin:0 auto 18px;border-radius:20px;background:var(--brand);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(15,23,42,.18)}
+:root.dark .portada-logo{background:#2563EB}
+.portada-card h1{font-size:1.65rem;margin:0 0 6px;letter-spacing:-.01em}
+.portada-card p.tag{color:var(--muted);margin:0 0 26px;font-size:.96rem;line-height:1.4}
+.portada-actions{display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto}
+.portada-foot{color:var(--muted);font-size:.74rem;margin-top:26px;text-transform:uppercase;letter-spacing:.08em}
+.btn-primary{background:var(--brand);color:#fff;border:0;border-radius:12px;padding:14px;font-weight:600;font-size:1rem}
+:root.dark .btn-primary{background:#2563EB}
+.btn-primary:hover{opacity:.92}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:13px;font-weight:600}
+.btn-ghost:hover{border-color:var(--brand)}
+.login-card{max-width:390px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 22px 18px;box-shadow:0 10px 30px rgba(15,23,42,.12)}
+.login-card h2{margin:0;font-size:1.25rem}
+.login-back{background:none;border:0;color:var(--muted);font-size:.85rem;padding:0 0 14px;cursor:pointer}
+.login-tabs{display:flex;gap:6px;margin:16px 0}
+.login-tabs button{flex:1;background:var(--surface2);border:0;color:var(--muted);padding:10px;border-radius:10px;font-weight:600}
+.login-tabs button.active{background:var(--brand);color:#fff}
+:root.dark .login-tabs button.active{background:#2563EB}
+.login-form{display:flex;flex-direction:column;gap:10px}
+.login-form input{border:1px solid var(--border);border-radius:11px;padding:12px;background:var(--bg);color:var(--text)}
+.login-form input:focus{outline:2px solid var(--brand);outline-offset:1px}
+.login-form .submit{background:var(--brand);color:#fff;border:0;border-radius:11px;padding:13px;font-weight:600;font-size:1rem;margin-top:2px}
+:root.dark .login-form .submit{background:#2563EB}
+.login-link{background:none;border:0;color:var(--muted);font-size:.82rem;text-decoration:underline;padding:6px;cursor:pointer}
+.login-msg{font-size:.83rem;margin:10px 0 0;min-height:1em;text-align:center}
+.login-msg.err{color:var(--danger)}.login-msg.ok{color:var(--success)}
+
+/* HEADER auth chips */
+.hbtn.rb{display:none;background:rgba(255,255,255,.16);font-weight:700}
+.hbtn.rb.on{display:inline-flex}
+.hbtn.rb.adm{background:var(--warning);color:#fff}
+#logoutbtn{display:none}#logoutbtn.on{display:inline-flex}
+@media (max-width:560px){.hbtn.rb.on{display:none}}
+
+/* TOOLBAR descargar/cargar */
+.fbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.fbar button{flex:1;min-width:130px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:12px;padding:12px 10px;font-weight:600;font-size:.86rem;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.fbar button:hover{border-color:var(--brand)}
+.fbar button.danger{color:var(--danger)}
+.fbar button.danger:hover{border-color:var(--danger)}
+
 @media (min-width:640px){ .hdrfields{grid-template-columns:repeat(4,1fr)} }
 @media (max-width:520px){ header.top .brand span{display:none} }
 
@@ -188,6 +234,42 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
 </head>
 <body>
 
+<!-- PORTADA (pantalla principal) -->
+<div id="portada">
+  <div class="portada-card">
+    <div class="portada-logo"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+    <h1>FUF · DS 44/2024</h1>
+    <p class="tag">Plataforma de fiscalización preventiva de los riesgos laborales</p>
+    <div class="portada-actions">
+      <button class="btn-primary" id="p-login">Ingresar a la plataforma</button>
+      <button class="btn-ghost" id="p-register">Crear cuenta</button>
+    </div>
+    <p class="portada-foot">Sistema de Gestión SST · Chile</p>
+  </div>
+</div>
+
+<!-- LOGIN / REGISTRO -->
+<div id="loginov">
+  <div class="login-card">
+    <button class="login-back" id="l-back">← Volver a la portada</button>
+    <h2 id="l-title">Iniciar sesión</h2>
+    <div class="login-tabs"><button class="active" id="t-login" type="button">Ingresar</button><button id="t-reg" type="button">Crear cuenta</button></div>
+    <form class="login-form" id="f-login">
+      <input type="email" id="li-email" placeholder="Correo electrónico" autocomplete="username" required>
+      <input type="password" id="li-pass" placeholder="Contraseña" autocomplete="current-password" required>
+      <button class="submit" type="submit">Ingresar</button>
+      <button class="login-link" type="button" id="li-forgot">¿Olvidaste tu contraseña?</button>
+    </form>
+    <form class="login-form" id="f-reg" style="display:none">
+      <input type="text" id="re-name" placeholder="Nombre y apellido" required>
+      <input type="email" id="re-email" placeholder="Correo electrónico" autocomplete="username" required>
+      <input type="password" id="re-pass" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="new-password" required>
+      <button class="submit" type="submit">Crear cuenta</button>
+    </form>
+    <p class="login-msg" id="l-msg"></p>
+  </div>
+</div>
+
 <header class="top">
   <div class="brand">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
@@ -202,6 +284,8 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
   <button class="hbtn" id="fsplus" title="Aumentar letra">A+</button>
   <button class="hbtn" id="themebtn" title="Tema">◐</button>
   <button class="hbtn" id="printbtn" title="Imprimir para terreno">🖶</button>
+  <span class="hbtn rb" id="rolebadge">Usuario</span>
+  <button class="hbtn" id="logoutbtn" title="Cerrar sesión">⎋</button>
 </header>
 
 <nav class="tabs">
@@ -227,6 +311,12 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
 <main>
   <!-- FISCALIZACION -->
   <section class="view active" id="viewFiscalizacion">
+    <div class="fbar">
+      <button id="btnDescargar" title="Exportar la fiscalización a un archivo para terreno">⬇ Descargar checklist</button>
+      <button id="btnCargar" title="Cargar un archivo de checklist al programa">⬆ Cargar checklist</button>
+      <button id="btnVaciar" class="danger" title="Empezar una fiscalización nueva">Vaciar</button>
+      <input type="file" id="importfile" accept="application/json,.json" hidden>
+    </div>
     <div class="hdrfields">
       <label>Empresa<input id="h_empresa" placeholder="Nombre de la entidad"></label>
       <label>Faena / Centro<input id="h_faena" placeholder="Faena o sucursal"></label>
@@ -280,6 +370,7 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 /* ===== FIREBASE ===== Pega aquí tu firebaseConfig (como en tus otros proyectos).
@@ -306,27 +397,70 @@ let state={answers:{},header:{empresa:'',faena:'',fecha:'',auditor:''}};
 function load(){ try{const s=JSON.parse(localStorage.getItem(LS)); if(s){state=Object.assign(state,s); state.answers=s.answers||{}; state.header=s.header||state.header;}}catch(e){} }
 let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ localStorage.setItem(LS,JSON.stringify(state)); fbSave(); },350); }
 
-/* ---------- Firebase (opcional, con fallback a localStorage) ---------- */
-let fbRef=null, fbReady=false, fbEcho=false;
+/* ===== AUTH + DATOS (mismo concepto que MAPA-PLANO) ===== */
+const ADMIN_EMAIL='marcoaraya1973@gmail.com';
+let fbRef=null, fbReady=false, fbEcho=false, authOn=false, isAdmin=false;
 function fbConfigured(){ return typeof firebase!=='undefined' && String(firebaseConfig.apiKey).indexOf('TU_')!==0; }
-function initFirebase(){
-  if(!fbConfigured()) return;
-  try{
-    firebase.initializeApp(firebaseConfig);
-    fbRef=firebase.database().ref('fuf_ds44/actual');
-    fbReady=true;
-    fbRef.on('value',snap=>{
-      const v=snap.val();
-      if(v && !fbEcho){
-        state.answers=v.answers||{}; state.header=v.header||state.header;
-        localStorage.setItem(LS,JSON.stringify(state));
-        hydrateUI();
-      }
-      fbEcho=false;
-    });
-  }catch(e){ console.warn('Firebase no disponible:',e.message); fbReady=false; }
+function fbSave(){ if(!fbReady||!fbRef) return; fbEcho=true; fbRef.set({answers:state.answers,header:state.header,updatedAt:Date.now()}).catch(()=>{fbEcho=false;}); }
+function bindUserData(uid){
+  fbRef=firebase.database().ref('fuf_ds44/users/'+uid+'/actual'); fbReady=true;
+  fbRef.on('value',snap=>{ const v=snap.val();
+    if(v && !fbEcho){ state.answers=v.answers||{}; state.header=v.header||state.header; localStorage.setItem(LS,JSON.stringify(state)); hydrateUI(); }
+    fbEcho=false;
+  });
 }
-function fbSave(){ if(!fbReady) return; fbEcho=true; fbRef.set({answers:state.answers,header:state.header,updatedAt:Date.now()}).catch(()=>{fbEcho=false;}); }
+function startApp(){
+  load(); hydrateUI();
+  openDB().then(renderDocs).catch(()=>{$('#docempty').textContent='Tu navegador no soporta almacenamiento de archivos.';});
+}
+function showPortada(){ $('#portada').style.display='flex'; $('#loginov').style.display='none'; document.body.classList.add('gated');
+  $('#rolebadge').classList.remove('on'); $('#logoutbtn').classList.remove('on'); }
+function enterApp(){ $('#portada').style.display='none'; $('#loginov').style.display='none'; document.body.classList.remove('gated');
+  const rb=$('#rolebadge'); rb.textContent=isAdmin?'Administrador':'Usuario'; rb.classList.add('on'); rb.classList.toggle('adm',isAdmin);
+  $('#logoutbtn').classList.add('on'); }
+function authMsg(e){const c=(e&&e.code)||'';const m={
+  'auth/invalid-email':'Correo inválido.','auth/user-not-found':'No existe una cuenta con ese correo.',
+  'auth/wrong-password':'Contraseña incorrecta.','auth/invalid-credential':'Correo o contraseña incorrectos.',
+  'auth/email-already-in-use':'Ese correo ya está registrado.','auth/weak-password':'La contraseña debe tener al menos 6 caracteres.',
+  'auth/too-many-requests':'Demasiados intentos. Espera un momento.','auth/network-request-failed':'Sin conexión con Firebase.'};
+  return m[c]||('Error: '+((e&&e.message)||c));}
+function wireAuthForms(auth){
+  const msg=$('#l-msg'), setMsg=(t,ok)=>{msg.textContent=t;msg.className='login-msg '+(ok?'ok':'err');};
+  function tab(reg){ $('#f-login').style.display=reg?'none':''; $('#f-reg').style.display=reg?'':'none';
+    $('#t-login').classList.toggle('active',!reg); $('#t-reg').classList.toggle('active',reg);
+    $('#l-title').textContent=reg?'Crear cuenta':'Iniciar sesión'; }
+  const openLogin=reg=>{ $('#portada').style.display='none'; $('#loginov').style.display='flex'; tab(reg); setMsg('',1); };
+  $('#p-login').onclick=()=>openLogin(false);
+  $('#p-register').onclick=()=>openLogin(true);
+  $('#t-login').onclick=()=>tab(false); $('#t-reg').onclick=()=>tab(true);
+  $('#l-back').onclick=()=>{ $('#loginov').style.display='none'; $('#portada').style.display='flex'; };
+  $('#f-login').onsubmit=e=>{e.preventDefault(); setMsg('Ingresando…',1);
+    auth.signInWithEmailAndPassword($('#li-email').value.trim(),$('#li-pass').value).catch(err=>setMsg(authMsg(err),0)); };
+  $('#f-reg').onsubmit=e=>{e.preventDefault(); setMsg('Creando cuenta…',1);
+    const nm=$('#re-name').value.trim(), em=$('#re-email').value.trim();
+    auth.createUserWithEmailAndPassword(em,$('#re-pass').value).then(cred=>{
+      firebase.database().ref('fuf_ds44/users/'+cred.user.uid+'/profile').set({name:nm,email:em,role:(em.toLowerCase()===ADMIN_EMAIL?'admin':'user'),createdAt:Date.now()});
+    }).catch(err=>setMsg(authMsg(err),0)); };
+  $('#li-forgot').onclick=()=>{ const em=$('#li-email').value.trim(); if(!em){setMsg('Escribe tu correo arriba primero.',0);return;}
+    auth.sendPasswordResetEmail(em).then(()=>setMsg('Te enviamos un correo para restablecer la contraseña.',1)).catch(err=>setMsg(authMsg(err),0)); };
+  $('#logoutbtn').onclick=()=>{ if(confirm('¿Cerrar sesión?')) auth.signOut(); };
+}
+function initApp(){
+  wireTools();
+  if(!fbConfigured()){ startApp(); return; }              // sin Firebase: modo local, sin login
+  try{ if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); }
+  catch(e){ console.warn('Firebase no disponible:',e.message); startApp(); return; }
+  authOn=true; startApp();                                 // la app se prepara; la portada la cubre hasta el login
+  const auth=firebase.auth();
+  wireAuthForms(auth); showPortada();
+  auth.onAuthStateChanged(u=>{
+    if(u){
+      isAdmin=(u.email||'').toLowerCase()===ADMIN_EMAIL;
+      firebase.database().ref('fuf_ds44/users/'+u.uid+'/profile').update({email:u.email,role:isAdmin?'admin':'user',lastLogin:Date.now()});
+      bindUserData(u.uid); enterApp();
+    } else { fbReady=false; fbRef=null; showPortada(); }
+  });
+}
 function ans(id){ return state.answers[id]||{estado:null,plan:{responsable:'',fecha_limite:'',observaciones:''}}; }
 
 /* ---------- render checklist ---------- */
@@ -611,16 +745,48 @@ async function sendAI(){
   $('#aisend').disabled=false;
 }
 
-/* ---------- init ---------- */
 function hydrateUI(){
   $('#h_empresa').value=state.header.empresa;$('#h_faena').value=state.header.faena;
   $('#h_fecha').value=state.header.fecha;$('#h_auditor').value=state.header.auditor;
   renderModules();updateScore();
 }
-load();
-hydrateUI();
-initFirebase();
-openDB().then(renderDocs).catch(()=>{$('#docempty').textContent='Tu navegador no soporta almacenamiento de archivos.';});
+
+/* ---------- Descargar / Cargar checklist (terreno) ---------- */
+function fiscStats(){ let c=0,nc=0,na=0; FUF_DATA.forEach(q=>{const e=(state.answers[q.id]||{}).estado; if(e==='cumple')c++;else if(e==='no_cumple')nc++;else if(e==='no_aplica')na++;});
+  const den=FUF_DATA.length-na; return {c,nc,na,pend:FUF_DATA.length-c-nc-na,pct:den>0?Math.round(c/den*100):0}; }
+function exportChecklist(){
+  const payload={_app:'FUF-DS44',_version:1,exportadoEl:new Date().toISOString(),header:state.header,answers:state.answers};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const emp=(state.header.empresa||'fiscalizacion').replace(/[^a-z0-9]+/gi,'_').slice(0,32).replace(/^_|_$/g,'')||'fiscalizacion';
+  const fch=state.header.fecha||new Date().toISOString().slice(0,10);
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='FUF_'+emp+'_'+fch+'.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importChecklist(file){
+  const r=new FileReader();
+  r.onload=()=>{ try{
+    const d=JSON.parse(r.result);
+    if(d._app!=='FUF-DS44'||typeof d.answers!=='object') throw 0;
+    state.header=Object.assign({empresa:'',faena:'',fecha:'',auditor:''},d.header||{});
+    state.answers=d.answers||{};
+    localStorage.setItem(LS,JSON.stringify(state)); fbSave(); hydrateUI(); switchView('Fiscalizacion');
+    const s=fiscStats();
+    alert('Checklist cargada correctamente.\n\nEmpresa: '+(state.header.empresa||'—')+'\nFaena: '+(state.header.faena||'—')+
+      '\nCumplimiento: '+s.pct+'%\nCumple '+s.c+' · No cumple '+s.nc+' · N/A '+s.na+' · Pendiente '+s.pend);
+  }catch(e){ alert('Archivo no válido. Debe ser un checklist FUF exportado desde esta plataforma (.json).'); } };
+  r.readAsText(file);
+}
+function resetFisc(){ if(!confirm('¿Iniciar una fiscalización nueva? Se borrarán las respuestas y la cabecera actuales (descarga antes si quieres conservarlas).'))return;
+  state.answers={}; state.header={empresa:'',faena:'',fecha:'',auditor:''}; localStorage.setItem(LS,JSON.stringify(state)); fbSave(); hydrateUI(); }
+function wireTools(){
+  $('#btnDescargar').onclick=exportChecklist;
+  $('#btnCargar').onclick=()=>$('#importfile').click();
+  $('#importfile').onchange=e=>{ if(e.target.files[0]) importChecklist(e.target.files[0]); e.target.value=''; };
+  $('#btnVaciar').onclick=resetFisc;
+}
+
+/* ---------- init ---------- */
+initApp();
 </script>
 </body>
 </html>
