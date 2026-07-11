@@ -139,7 +139,7 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
 .ai-config .hint{font-size:.72rem;color:var(--muted);margin-top:8px;line-height:1.5}
 .ai-config .warn{color:var(--warning)}
 .chat{background:var(--surface);border:1px solid var(--border);border-radius:14px;min-height:220px;padding:12px;display:flex;flex-direction:column;gap:12px}
-.msg{max-width:92%;padding:10px 13px;border-radius:14px;font-size:.92rem;line-height:1.55;white-space:normal}
+.msg{max-width:92%;padding:10px 13px;border-radius:14px;font-size:.92rem;line-height:1.55;white-space:normal;scroll-margin-top:76px}
 .msg.user{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
 :root.dark .msg.user{background:#334155}
 .msg.ai{align-self:flex-start;background:var(--surface2);border-bottom-left-radius:4px}
@@ -152,7 +152,7 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
 .shimmer{align-self:flex-start;width:70%}
 .shimmer div{height:10px;border-radius:6px;background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 37%,var(--surface2) 63%);background-size:400% 100%;animation:sh 1.3s infinite;margin:7px 0}
 @keyframes sh{0%{background-position:100% 0}100%{background-position:-100% 0}}
-.ai-input{display:flex;gap:8px;margin-top:12px}
+.ai-input{display:flex;gap:8px;margin-bottom:12px;position:sticky;top:8px;z-index:5}
 .ai-input textarea{flex:1;border:1px solid var(--border);border-radius:12px;padding:11px;background:var(--surface);color:var(--text);resize:none;min-height:46px;max-height:140px}
 .sendbtn{flex:0 0 auto;background:var(--brand);color:#fff;border:0;border-radius:12px;padding:0 16px;font-weight:600}
 :root.dark .sendbtn{background:#2563EB}
@@ -408,12 +408,12 @@ body.gated{overflow:hidden}
         Respuestas orientativas: valida siempre con tu asesor SST.
       </div>
     </div>
-    <div class="chat" id="chat">
-      <div class="msg ai">Hola. Cargá tus normas en la Biblioteca y consultame sobre el DS 44/2024, DS 594, Ley 16.744 u otra. Puedo ayudarte a interpretar artículos, redactar planes de acción y preparar tu fiscalización.</div>
-    </div>
     <div class="ai-input">
       <textarea id="aiq" rows="1" placeholder="Escribe tu consulta…"></textarea>
       <button class="sendbtn" id="aisend">Enviar</button>
+    </div>
+    <div class="chat" id="chat">
+      <div class="msg ai">Hola. Cargá tus normas en la Biblioteca y consultame sobre el DS 44/2024, DS 594, Ley 16.744 u otra. Puedo ayudarte a interpretar artículos, redactar planes de acción y preparar tu fiscalización.</div>
     </div>
   </section>
 
@@ -785,14 +785,21 @@ function mdRender(t){
   h=h.split(/\n{2,}/).map(p=>/^\s*<(h\d|ul|ol)/.test(p)?p:'<p>'+p.replace(/\n/g,'<br>')+'</p>').join('');
   return h;
 }
-function addMsg(cls,html){const m=document.createElement('div');m.className='msg '+cls;m.innerHTML=html;$('#chat').appendChild(m);m.scrollIntoView({block:'end'});return m;}
+function addMsg(cls,html){const m=document.createElement('div');m.className='msg '+cls;m.innerHTML=html;const chat=$('#chat');chat.insertBefore(m,chat.firstChild);m.scrollIntoView({block:'nearest'});return m;}
 
 async function sendAI(){
   const q=aiq.value.trim();if(!q)return;
   if(!currentUid){switchView('IA');addMsg('err','Debes iniciar sesión para usar el asistente.');return;}
-  addMsg('user',esc(q));aiq.value='';aiq.style.height='auto';
+  const chat=$('#chat');
+  const mk=(cls,html)=>{const m=document.createElement('div');m.className='msg '+cls;m.innerHTML=html;return m;};
+  const userMsg=mk('user',esc(q));
+  chat.insertBefore(userMsg,chat.firstChild);              // la pregunta queda arriba de todo
+  const sh=mk('shimmer','<div style="width:90%"></div><div style="width:70%"></div><div style="width:80%"></div>');
+  chat.insertBefore(sh,userMsg.nextSibling);               // la respuesta irá justo debajo de su pregunta
+  aiq.value='';aiq.style.height='auto';
   $('#aisend').disabled=true;
-  const sh=addMsg('shimmer','<div style="width:90%"></div><div style="width:70%"></div><div style="width:80%"></div>');
+  userMsg.scrollIntoView({block:'nearest'});
+  const replaceSh=node=>{ if(sh.parentNode) chat.replaceChild(node,sh); else chat.insertBefore(node,userMsg.nextSibling); };
 
   // documentos seleccionados (solo metadatos: la función los lee desde Storage)
   const off=aiOff();
@@ -807,9 +814,8 @@ async function sendAI(){
       docs:docs,
       firstMessage:history.length===0
     });
-    sh.remove();
     const data=res.data||{};
-    if(data.refusal){addMsg('err','La IA declinó responder esta consulta.');$('#aisend').disabled=false;return;}
+    if(data.refusal){replaceSh(mk('err','La IA declinó responder esta consulta.'));$('#aisend').disabled=false;return;}
     const text=data.text||'';
     const cites=data.cites||[];
     let html=mdRender(text);
@@ -817,13 +823,18 @@ async function sendAI(){
       const seen=new Set();const list=cites.map(c=>{const pg=c.start_page_number?(' pág '+c.start_page_number):'';const k=(c.document_title||'')+pg;if(seen.has(k))return'';seen.add(k);return esc((c.document_title||'documento')+pg);}).filter(Boolean);
       if(list.length)html+='<span class="cite">Fuentes: '+list.join(' · ')+'</span>';
     }
-    addMsg('ai',html);
+    replaceSh(mk('ai',html));
     history.push({role:'user',content:q});
     history.push({role:'assistant',content:text});
   }catch(e){
-    sh.remove();
-    const msg=(e && e.message)?e.message:'Error desconocido';
-    addMsg('err','No se pudo obtener respuesta. '+esc(msg));
+    const raw=(e && e.message)?e.message:'Error desconocido';
+    let friendly='No se pudo obtener respuesta. '+esc(raw);
+    if(/PDF page|maximum of \d+\s*PDF|too large|páginas/i.test(raw)){
+      friendly='📚 Marcaste demasiadas normas para una sola consulta (la IA admite ~600 páginas por vez). '+
+               'Ve a <b>Biblioteca Normativa</b> y deja marcada con <b>"IA"</b> solo la norma (o las pocas) que necesitas para esta pregunta; luego vuelve a preguntar. '+
+               'Las normas grandes (OGUC, DS 594) conviene consultarlas de a una.';
+    }
+    replaceSh(mk('err',friendly));
   }
   $('#aisend').disabled=false;
 }
