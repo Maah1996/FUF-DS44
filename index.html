@@ -263,6 +263,14 @@ body.gated{overflow:hidden}
   #printdoc .modrow td{background:#e8e8e8;font-weight:bold;font-size:9pt}
   #printdoc .chk{white-space:nowrap;text-align:center;font-family:monospace;vertical-align:middle;width:26pt}
   #printdoc table.q th.cc{width:26pt;text-align:center}
+  #printdoc .planrow td{padding:4pt 6pt;background:#fafafa}
+  #printdoc .planrow .sug{font-size:7.5pt;color:#333;margin:1pt 0;line-height:1.35}
+  #printdoc .planrow .plan{font-size:8.5pt;margin:4pt 0;display:flex;gap:24pt;flex-wrap:wrap}
+  #printdoc .planrow .fill{display:inline-block;min-width:130pt;border-bottom:1px solid #000}
+  #printdoc .planrow .obs{font-size:8.5pt}
+  #printdoc .planrow .obsbox{border:1px solid #000;min-height:24pt;margin-top:2pt}
+  #printdoc .qrow{page-break-after:avoid}
+  #printdoc .planrow{page-break-inside:avoid}
   #printdoc .firmas{margin-top:48pt;display:flex;justify-content:space-around;font-size:10pt}
   #printdoc .firmas div{text-align:center;border-top:1px solid #000;padding-top:4pt;width:40%}
   @page{margin:1.4cm}
@@ -668,11 +676,23 @@ function buildPrint(h,answers){
     const e=(answers[id]||{}).estado, m=v=>e===v?'X':'&nbsp;';
     return '<td class="chk">'+m('cumple')+'</td><td class="chk">'+m('no_cumple')+'</td><td class="chk">'+m('no_aplica')+'</td>';
   };
+  // Bloque de Plan de acción bajo cada pregunta (igual que en la web)
+  const planBlock=q=>{
+    const p=(answers&&answers[q.id]&&answers[q.id].plan)||{};
+    const line=v=> v ? esc(v) : '<span class="fill"></span>';
+    return `<tr class="planrow"><td colspan="5">
+      <div class="sug"><b>Sugerencia:</b> ${esc(q.sugerencia_legal||'')}</div>
+      <div class="sug"><b>Plan sugerido:</b> ${esc(q.plan_defecto||'')}</div>
+      <div class="plan"><span><b>Responsable:</b> ${line(p.responsable)}</span><span><b>Fecha límite:</b> ${line(p.fecha_limite)}</span></div>
+      <div class="obs"><b>Observaciones:</b><div class="obsbox">${p.observaciones?esc(p.observaciones):''}</div></div>
+    </td></tr>`;
+  };
   let rows='';
   Object.keys(MODULES).map(Number).sort((a,b)=>a-b).forEach(m=>{
     rows+=`<tr class="modrow"><td colspan="5">${esc(MODULES[m].n)}</td></tr>`;
     MODULES[m].items.forEach(q=>{
-      rows+=`<tr><td style="text-align:center">${q.id}</td><td>${esc(q.pregunta)}<br><i style="font-size:8pt">${esc(q.articulo)}</i></td>${cells(q.id)}</tr>`;
+      rows+=`<tr class="qrow"><td style="text-align:center">${q.id}</td><td>${esc(q.pregunta)}<br><i style="font-size:8pt">${esc(q.articulo)}</i></td>${cells(q.id)}</tr>`;
+      rows+=planBlock(q);
     });
   });
   $('#printdoc').innerHTML=`
