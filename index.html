@@ -389,14 +389,13 @@ body.gated{overflow:hidden}
       <input type="file" id="fileinput" accept="application/pdf,.pdf" multiple hidden>
     </div>
     <div class="doclist" id="doclist"></div>
-    <p class="empty" id="docempty">Aún no has cargado documentos. La biblioteca se guarda en este dispositivo.</p>
+    <p class="empty" id="docempty">Aún no has cargado documentos. La biblioteca se guarda en la nube y está disponible en cualquier equipo con tu sesión iniciada.</p>
   </section>
 
   <!-- IA -->
   <section class="view" id="viewIA">
     <div class="ai-config">
       <div class="r">
-        <input class="key" type="password" id="apikey" placeholder="Pega tu API key de Claude (sk-ant-…)" autocomplete="off">
         <select id="model">
           <option value="claude-sonnet-5">Sonnet 5 — equilibrio (recom.)</option>
           <option value="claude-opus-4-8">Opus 4.8 — máxima calidad</option>
@@ -405,8 +404,8 @@ body.gated{overflow:hidden}
       </div>
       <div class="hint">
         Consulta normativa asistida por IA usando los PDF de tu <b>Biblioteca</b> como contexto.
-        <span class="warn">La API key se guarda solo en este navegador (localStorage) y se envía directo a Anthropic.</span>
-        No la uses en un equipo compartido. Respuestas orientativas: valida siempre con tu asesor SST.
+        La conexión con Claude es segura: la clave vive en el servidor, no en tu navegador. Funciona desde cualquier equipo con tu sesión iniciada.
+        Respuestas orientativas: valida siempre con tu asesor SST.
       </div>
     </div>
     <div class="chat" id="chat">
@@ -435,6 +434,8 @@ body.gated{overflow:hidden}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 <script>
 /* ===== FIREBASE ===== Reutiliza el proyecto de MONTICHEF (el mismo de MAPA-PLANO):
    mismo login/usuarios y Firestore. Admin = marcoaraya1973@gmail.com.
@@ -453,10 +454,11 @@ const MODULES = {};
 FUF_DATA.forEach(q=>{ if(!MODULES[q.modulo]) MODULES[q.modulo]={n:q.modulo_nombre,items:[]}; MODULES[q.modulo].items.push(q); });
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS='fuf_ds44_v1';
-let state={answers:{},header:{empresa:'',faena:'',fecha:'',auditor:''}};
+let state={answers:{},header:{empresa:'',faena:'',fecha:'',auditor:''},biblioteca:[]};
+let currentUid=null;
 
 /* ---------- persistence ---------- */
-function load(){ try{const s=JSON.parse(localStorage.getItem(LS)); if(s){state=Object.assign(state,s); state.answers=s.answers||{}; state.header=s.header||state.header;}}catch(e){} }
+function load(){ try{const s=JSON.parse(localStorage.getItem(LS)); if(s){state=Object.assign(state,s); state.answers=s.answers||{}; state.header=s.header||state.header; state.biblioteca=s.biblioteca||[];}}catch(e){} }
 let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ localStorage.setItem(LS,JSON.stringify(state)); fbSave(); },350); }
 
 /* ===== AUTH + DATOS (mismo concepto que MAPA-PLANO) ===== */
@@ -464,16 +466,20 @@ const ADMIN_EMAIL='marcoaraya1973@gmail.com';
 let fbRef=null, fbReady=false, fbEcho=false, authOn=false, isAdmin=false;
 function fbConfigured(){ return typeof firebase!=='undefined' && String(firebaseConfig.apiKey).indexOf('TU_')!==0; }
 function fbSave(){ if(!fbReady||!fbRef) return; fbEcho=true; fbRef.set({answers:state.answers,header:state.header,updatedAt:Date.now()},{merge:true}).catch(e=>{fbEcho=false;console.warn('Firestore save:',e.message);}); }
+function bibSave(){ if(!fbReady||!fbRef) return; fbEcho=true; fbRef.set({biblioteca:state.biblioteca,updatedAt:Date.now()},{merge:true}).catch(e=>{fbEcho=false;console.warn('bibSave:',e.message);}); }
 function bindUserData(uid){
   fbRef=firebase.firestore().collection('fuf_ds44').doc(uid); fbReady=true;
   fbRef.onSnapshot(snap=>{ const v=snap.data();
-    if(v && !fbEcho){ state.answers=v.answers||{}; state.header=Object.assign(state.header,v.header||{}); localStorage.setItem(LS,JSON.stringify(state)); hydrateUI(); }
+    if(v){
+      if(!fbEcho){ state.answers=v.answers||{}; state.header=Object.assign(state.header,v.header||{}); hydrateUI(); }
+      if(v.biblioteca!==undefined){ state.biblioteca=v.biblioteca||[]; renderDocs(); }
+      localStorage.setItem(LS,JSON.stringify(state));
+    }
     fbEcho=false;
   }, e=>console.warn('Firestore:',e.message));
 }
 function startApp(){
-  load(); hydrateUI();
-  openDB().then(renderDocs).catch(()=>{$('#docempty').textContent='Tu navegador no soporta almacenamiento de archivos.';});
+  load(); hydrateUI(); renderDocs();
 }
 function showPortada(){ $('#portada').style.display='flex'; $('#loginov').style.display='none'; document.body.classList.add('gated');
   $('#rolebadge').classList.remove('on'); $('#logoutbtn').classList.remove('on'); $('#tabAdmin').style.display='none'; $('#adminModal').style.display='none'; }
@@ -517,10 +523,11 @@ function initApp(){
   wireAuthForms(auth); showPortada();
   auth.onAuthStateChanged(u=>{
     if(u){
+      currentUid=u.uid;
       isAdmin=(u.email||'').toLowerCase()===ADMIN_EMAIL;
       firebase.firestore().collection('fuf_ds44_users').doc(u.uid).set({email:u.email,role:isAdmin?'admin':'user',lastLogin:Date.now()},{merge:true});
       bindUserData(u.uid); enterApp();
-    } else { fbReady=false; fbRef=null; showPortada(); }
+    } else { currentUid=null; fbReady=false; fbRef=null; showPortada(); }
   });
 }
 function ans(id){ return state.answers[id]||{estado:null,plan:{responsable:'',fecha_limite:'',observaciones:''}}; }
@@ -679,14 +686,9 @@ function buildPrint(h,answers){
     <div class="firmas"><div>Firma Auditor / Fiscalizador</div><div>Firma Representante Empresa</div></div>`;
 }
 
-/* ================= BIBLIOTECA (IndexedDB) ================= */
-let db;
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('fuf_biblioteca',1);
-  r.onupgradeneeded=()=>{r.result.createObjectStore('docs',{keyPath:'id'});};
-  r.onsuccess=()=>{db=r.result;res();};r.onerror=()=>rej(r.error);});}
-function dbAll(){return new Promise(res=>{const t=db.transaction('docs').objectStore('docs').getAll();t.onsuccess=()=>res(t.result||[]);});}
-function dbPut(d){return new Promise(res=>{const t=db.transaction('docs','readwrite').objectStore('docs').put(d);t.onsuccess=()=>res();});}
-function dbDel(id){return new Promise(res=>{const t=db.transaction('docs','readwrite').objectStore('docs').delete(id);t.onsuccess=()=>res();});}
+/* ================= BIBLIOTECA (Firebase Storage + Firestore) =================
+   Los PDF se guardan en la nube (fuf_biblioteca/{uid}/{id}.pdf) y su lista en
+   Firestore, dentro del documento del usuario. Así están disponibles en cualquier PC. */
 function fmtSize(b){return b<1048576?(b/1024).toFixed(0)+' KB':(b/1048576).toFixed(1)+' MB';}
 
 const dz=$('#dropzone'),fi=$('#fileinput');
@@ -697,42 +699,53 @@ dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag');handleFiles(e.dataT
 fi.onchange=()=>handleFiles(fi.files);
 
 async function handleFiles(files){
+  if(!currentUid){alert('Debes iniciar sesión para cargar documentos a la nube.');return;}
   for(const f of files){
     if(f.type!=='application/pdf' && !f.name.toLowerCase().endsWith('.pdf')){alert('Solo se aceptan PDF: '+f.name);continue;}
     if(f.size>12*1048576){alert('Archivo muy grande (máx 12 MB): '+f.name);continue;}
-    const buf=await f.arrayBuffer();
     // validar magic bytes %PDF
-    const head=new Uint8Array(buf.slice(0,5));
+    const head=new Uint8Array(await f.slice(0,5).arrayBuffer());
     if(!(head[0]===0x25&&head[1]===0x50&&head[2]===0x44&&head[3]===0x46)){alert('El archivo no es un PDF válido: '+f.name);continue;}
-    const b64=arrToB64(buf);
-    await dbPut({id:'d'+Date.now()+Math.random().toString(36).slice(2,6),name:f.name,size:f.size,b64,use:true,added:Date.now()});
+    const id='d'+Date.now()+Math.random().toString(36).slice(2,6);
+    const path='fuf_biblioteca/'+currentUid+'/'+id+'.pdf';
+    const item={id,name:f.name,size:f.size,use:true,added:Date.now(),path,subiendo:true};
+    state.biblioteca.push(item); renderDocs();
+    try{
+      await firebase.storage().ref(path).put(f,{contentType:'application/pdf'});
+      delete item.subiendo;
+    }catch(e){
+      state.biblioteca=state.biblioteca.filter(d=>d.id!==id);
+      alert('No se pudo subir '+f.name+': '+e.message);
+    }
+    renderDocs();
   }
-  fi.value='';renderDocs();
+  fi.value=''; bibSave();
 }
-function arrToB64(buf){let bin='';const bytes=new Uint8Array(buf);const chunk=0x8000;
-  for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
-  return btoa(bin);}
-async function renderDocs(){
-  const docs=await dbAll();
-  const list=$('#doclist');list.innerHTML='';
+
+function renderDocs(){
+  const docs=state.biblioteca||[];
+  const list=$('#doclist'); if(!list) return; list.innerHTML='';
   $('#docempty').style.display=docs.length?'none':'block';
-  docs.sort((a,b)=>a.added-b.added).forEach(d=>{
+  docs.slice().sort((a,b)=>a.added-b.added).forEach(d=>{
     const el=document.createElement('div');el.className='docitem';
     el.innerHTML=`<div class="ic">PDF</div>
-      <div class="info"><div class="nm">${esc(d.name)}</div><div class="sub">${fmtSize(d.size)}</div></div>
-      <label class="use"><input type="checkbox" ${d.use?'checked':''}> IA</label>
-      <button class="del" title="Eliminar">✕</button>`;
-    el.querySelector('input').onchange=async e=>{d.use=e.target.checked;await dbPut(d);};
-    el.querySelector('.del').onclick=async()=>{if(confirm('¿Eliminar '+d.name+'?')){await dbDel(d.id);renderDocs();}};
+      <div class="info"><div class="nm">${esc(d.name)}</div><div class="sub">${d.subiendo?'subiendo…':fmtSize(d.size)}</div></div>
+      <label class="use"><input type="checkbox" ${d.use?'checked':''} ${d.subiendo?'disabled':''}> IA</label>
+      <button class="del" title="Eliminar" ${d.subiendo?'disabled':''}>✕</button>`;
+    el.querySelector('input').onchange=e=>{d.use=e.target.checked;bibSave();};
+    el.querySelector('.del').onclick=async()=>{
+      if(!confirm('¿Eliminar '+d.name+'?'))return;
+      try{ await firebase.storage().ref(d.path).delete(); }catch(e){ /* si ya no existe en Storage, igual lo quitamos de la lista */ }
+      state.biblioteca=state.biblioteca.filter(x=>x.id!==d.id);
+      bibSave(); renderDocs();
+    };
     list.appendChild(el);
   });
 }
 
 /* ================= ASISTENTE IA ================= */
-const keyK='fuf_ai_key',modK='fuf_ai_model';
-$('#apikey').value=localStorage.getItem(keyK)||'';
+const modK='fuf_ai_model';
 $('#model').value=localStorage.getItem(modK)||'claude-sonnet-5';
-$('#apikey').oninput=()=>localStorage.setItem(keyK,$('#apikey').value.trim());
 $('#model').onchange=()=>localStorage.setItem(modK,$('#model').value);
 const aiq=$('#aiq');
 aiq.oninput=()=>{aiq.style.height='auto';aiq.style.height=Math.min(aiq.scrollHeight,140)+'px';};
@@ -754,47 +767,28 @@ function addMsg(cls,html){const m=document.createElement('div');m.className='msg
 
 async function sendAI(){
   const q=aiq.value.trim();if(!q)return;
-  const key=$('#apikey').value.trim();
-  if(!key){switchView('IA');addMsg('err','Falta la API key de Claude. Pégala arriba (sk-ant-…).');return;}
+  if(!currentUid){switchView('IA');addMsg('err','Debes iniciar sesión para usar el asistente.');return;}
   addMsg('user',esc(q));aiq.value='';aiq.style.height='auto';
   $('#aisend').disabled=true;
   const sh=addMsg('shimmer','<div style="width:90%"></div><div style="width:70%"></div><div style="width:80%"></div>');
 
-  // documentos seleccionados
-  const docs=(await dbAll()).filter(d=>d.use);
-  // primer mensaje incluye documentos
-  const userContent=[];
-  if(history.length===0 && docs.length){
-    docs.forEach((d,i)=>userContent.push({type:'document',
-      source:{type:'base64',media_type:'application/pdf',data:d.b64},
-      title:d.name, citations:{enabled:true},
-      ...(i===docs.length-1?{cache_control:{type:'ephemeral'}}:{})}));
-  }
-  userContent.push({type:'text',text:q});
-  const messages=history.concat([{role:'user',content:userContent}]);
-
-  const system="Eres un experto en prevención de riesgos laborales de Chile y en el DS N° 44/2024 (SGSST). "+
-    "Responde en español, claro y práctico, citando artículos cuando corresponda. Usa los documentos adjuntos (normas, leyes y DS) como fuente. "+
-    "Cuando propongas medidas, entrégalas como pasos accionables. Aclara que tus respuestas son orientativas y deben validarse con el asesor SST o el organismo administrador de la Ley 16.744.";
+  // documentos seleccionados (solo metadatos: la función los lee desde Storage)
+  const docs=(state.biblioteca||[]).filter(d=>d.use && !d.subiendo).map(d=>({path:d.path,name:d.name}));
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:$('#model').value,max_tokens:1500,system,messages})
+    const askClaude=firebase.functions('us-east1').httpsCallable('askClaude');
+    const res=await askClaude({
+      model:$('#model').value,
+      question:q,
+      history:history,
+      docs:docs,
+      firstMessage:history.length===0
     });
     sh.remove();
-    if(!r.ok){
-      let em='Error '+r.status;
-      try{const j=await r.json();em=(j.error&&j.error.message)||em;}catch(e){}
-      if(r.status===401)em='API key inválida o sin permisos (401).';
-      if(r.status===429)em='Límite de uso alcanzado (429). Espera un momento y reintenta.';
-      addMsg('err',esc(em));$('#aisend').disabled=false;return;
-    }
-    const j=await r.json();
-    if(j.stop_reason==='refusal'){addMsg('err','La IA declinó responder esta consulta.');$('#aisend').disabled=false;return;}
-    let text='',cites=[];
-    (j.content||[]).forEach(b=>{if(b.type==='text'){text+=b.text; if(b.citations)b.citations.forEach(c=>cites.push(c));}});
+    const data=res.data||{};
+    if(data.refusal){addMsg('err','La IA declinó responder esta consulta.');$('#aisend').disabled=false;return;}
+    const text=data.text||'';
+    const cites=data.cites||[];
     let html=mdRender(text);
     if(cites.length){
       const seen=new Set();const list=cites.map(c=>{const pg=c.start_page_number?(' pág '+c.start_page_number):'';const k=(c.document_title||'')+pg;if(seen.has(k))return'';seen.add(k);return esc((c.document_title||'documento')+pg);}).filter(Boolean);
@@ -805,7 +799,8 @@ async function sendAI(){
     history.push({role:'assistant',content:text});
   }catch(e){
     sh.remove();
-    addMsg('err','No se pudo conectar con la API. Revisa tu conexión y que la API key sea válida. ('+esc(e.message)+')');
+    const msg=(e && e.message)?e.message:'Error desconocido';
+    addMsg('err','No se pudo obtener respuesta. '+esc(msg));
   }
   $('#aisend').disabled=false;
 }

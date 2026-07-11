@@ -1,0 +1,11 @@
+{
+  "name": "functions",
+  "description": "Proxy seguro a Claude para FUF-DS44 (la API key vive en el servidor)",
+  "engines": { "node": "22" },
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

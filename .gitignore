@@ -2,3 +2,7 @@
 Thumbs.db
 desktop.ini
 *.tmp
+functions/node_modules/
+.firebase/
+firebase-debug.log
+*.log
