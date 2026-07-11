@@ -799,7 +799,7 @@ async function sendAI(){
   const docs=sharedDocs.filter(d=>!off.has(d.path) && !d.subiendo).map(d=>({path:d.path,name:d.name}));
 
   try{
-    const askClaude=firebase.functions('us-east1').httpsCallable('askClaude');
+    const askClaude=firebase.app().functions('us-east1').httpsCallable('askClaude');
     const res=await askClaude({
       model:$('#model').value,
       question:q,
