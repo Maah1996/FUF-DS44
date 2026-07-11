@@ -263,7 +263,7 @@ body.gated{overflow:hidden}
   #printdoc .modrow td{background:#e8e8e8;font-weight:bold;font-size:9pt}
   #printdoc .chk{white-space:nowrap;text-align:center;font-family:monospace;vertical-align:middle;width:26pt}
   #printdoc table.q th.cc{width:26pt;text-align:center}
-  #printdoc .firmas{margin-top:24pt;display:flex;justify-content:space-around;font-size:10pt}
+  #printdoc .firmas{margin-top:48pt;display:flex;justify-content:space-around;font-size:10pt}
   #printdoc .firmas div{text-align:center;border-top:1px solid #000;padding-top:4pt;width:40%}
   @page{margin:1.4cm}
 }
@@ -664,9 +664,9 @@ function buildPrint(h,answers){
   h=h||{};
   // Devuelve 3 celdas separadas: Cumple (C) / No Cumple (NC) / No Aplica (NA)
   const cells=id=>{
-    if(!answers) return '<td class="chk">[ ]</td><td class="chk">[ ]</td><td class="chk">[ ]</td>';
+    if(!answers) return '<td class="chk">&nbsp;</td><td class="chk">&nbsp;</td><td class="chk">&nbsp;</td>';
     const e=(answers[id]||{}).estado, m=v=>e===v?'X':'&nbsp;';
-    return '<td class="chk">['+m('cumple')+']</td><td class="chk">['+m('no_cumple')+']</td><td class="chk">['+m('no_aplica')+']</td>';
+    return '<td class="chk">'+m('cumple')+'</td><td class="chk">'+m('no_cumple')+'</td><td class="chk">'+m('no_aplica')+'</td>';
   };
   let rows='';
   Object.keys(MODULES).map(Number).sort((a,b)=>a-b).forEach(m=>{
