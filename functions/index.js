@@ -35,7 +35,11 @@ exports.askClaude = onCall(
     const userContent = [];
     if (firstMessage && Array.isArray(docs) && docs.length) {
       const bucket = admin.storage().bucket();
-      const validos = docs.filter(d => String((d && d.path) || '').startsWith(`fuf_biblioteca/${uid}/`));
+      const validos = docs.filter(d => {
+        const p = String((d && d.path) || '');
+        // biblioteca compartida (todos) o carpeta privada del propio usuario
+        return p.startsWith('fuf_biblioteca_shared/') || p.startsWith(`fuf_biblioteca/${uid}/`);
+      });
       for (let i = 0; i < validos.length; i++) {
         const d = validos[i];
         let buf;

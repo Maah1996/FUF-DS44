@@ -454,11 +454,11 @@ const MODULES = {};
 FUF_DATA.forEach(q=>{ if(!MODULES[q.modulo]) MODULES[q.modulo]={n:q.modulo_nombre,items:[]}; MODULES[q.modulo].items.push(q); });
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS='fuf_ds44_v1';
-let state={answers:{},header:{empresa:'',faena:'',fecha:'',auditor:''},biblioteca:[]};
+let state={answers:{},header:{empresa:'',faena:'',fecha:'',auditor:''}};
 let currentUid=null;
 
 /* ---------- persistence ---------- */
-function load(){ try{const s=JSON.parse(localStorage.getItem(LS)); if(s){state=Object.assign(state,s); state.answers=s.answers||{}; state.header=s.header||state.header; state.biblioteca=s.biblioteca||[];}}catch(e){} }
+function load(){ try{const s=JSON.parse(localStorage.getItem(LS)); if(s){state=Object.assign(state,s); state.answers=s.answers||{}; state.header=s.header||state.header;}}catch(e){} }
 let saveT; function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ localStorage.setItem(LS,JSON.stringify(state)); fbSave(); },350); }
 
 /* ===== AUTH + DATOS (mismo concepto que MAPA-PLANO) ===== */
@@ -466,15 +466,10 @@ const ADMIN_EMAIL='marcoaraya1973@gmail.com';
 let fbRef=null, fbReady=false, fbEcho=false, authOn=false, isAdmin=false;
 function fbConfigured(){ return typeof firebase!=='undefined' && String(firebaseConfig.apiKey).indexOf('TU_')!==0; }
 function fbSave(){ if(!fbReady||!fbRef) return; fbEcho=true; fbRef.set({answers:state.answers,header:state.header,updatedAt:Date.now()},{merge:true}).catch(e=>{fbEcho=false;console.warn('Firestore save:',e.message);}); }
-function bibSave(){ if(!fbReady||!fbRef) return; fbEcho=true; fbRef.set({biblioteca:state.biblioteca,updatedAt:Date.now()},{merge:true}).catch(e=>{fbEcho=false;console.warn('bibSave:',e.message);}); }
 function bindUserData(uid){
   fbRef=firebase.firestore().collection('fuf_ds44').doc(uid); fbReady=true;
   fbRef.onSnapshot(snap=>{ const v=snap.data();
-    if(v){
-      if(!fbEcho){ state.answers=v.answers||{}; state.header=Object.assign(state.header,v.header||{}); hydrateUI(); }
-      if(v.biblioteca!==undefined){ state.biblioteca=v.biblioteca||[]; renderDocs(); }
-      localStorage.setItem(LS,JSON.stringify(state));
-    }
+    if(v && !fbEcho){ state.answers=v.answers||{}; state.header=Object.assign(state.header,v.header||{}); localStorage.setItem(LS,JSON.stringify(state)); hydrateUI(); }
     fbEcho=false;
   }, e=>console.warn('Firestore:',e.message));
 }
@@ -485,7 +480,9 @@ function showPortada(){ $('#portada').style.display='flex'; $('#loginov').style.
   $('#rolebadge').classList.remove('on'); $('#logoutbtn').classList.remove('on'); $('#tabAdmin').style.display='none'; $('#adminModal').style.display='none'; }
 function enterApp(){ $('#portada').style.display='none'; $('#loginov').style.display='none'; document.body.classList.remove('gated');
   const rb=$('#rolebadge'); rb.textContent=isAdmin?'Administrador':'Usuario'; rb.classList.add('on'); rb.classList.toggle('adm',isAdmin);
-  $('#logoutbtn').classList.add('on'); $('#tabAdmin').style.display=isAdmin?'':'none'; }
+  $('#logoutbtn').classList.add('on'); $('#tabAdmin').style.display=isAdmin?'':'none';
+  $('#dropzone').style.display=isAdmin?'':'none';   // solo el admin sube normas
+  loadSharedDocs(); }
 function authMsg(e){const c=(e&&e.code)||'';const m={
   'auth/invalid-email':'Correo inválido.','auth/user-not-found':'No existe una cuenta con ese correo.',
   'auth/wrong-password':'Contraseña incorrecta.','auth/invalid-credential':'Correo o contraseña incorrectos.',
@@ -686,9 +683,15 @@ function buildPrint(h,answers){
     <div class="firmas"><div>Firma Auditor / Fiscalizador</div><div>Firma Representante Empresa</div></div>`;
 }
 
-/* ================= BIBLIOTECA (Firebase Storage + Firestore) =================
-   Los PDF se guardan en la nube (fuf_biblioteca/{uid}/{id}.pdf) y su lista en
-   Firestore, dentro del documento del usuario. Así están disponibles en cualquier PC. */
+/* ================= BIBLIOTECA COMPARTIDA (Firebase Storage) =================
+   Las normas las sube el ADMINISTRADOR una sola vez a fuf_biblioteca_shared/ y quedan
+   disponibles (solo lectura) para todos los usuarios. Solo el admin agrega o borra.
+   Cada usuario puede elegir localmente qué documentos incluir en las consultas a la IA. */
+const SHARED_DIR='fuf_biblioteca_shared';
+let sharedDocs=[]; // {name,size,path,added,subiendo?}
+const aiOffK='fuf_ai_docs_off';
+function aiOff(){ try{return new Set(JSON.parse(localStorage.getItem(aiOffK))||[]);}catch(e){return new Set();} }
+function aiOffSave(s){ localStorage.setItem(aiOffK,JSON.stringify([...s])); }
 function fmtSize(b){return b<1048576?(b/1024).toFixed(0)+' KB':(b/1048576).toFixed(1)+' MB';}
 
 const dz=$('#dropzone'),fi=$('#fileinput');
@@ -699,7 +702,8 @@ dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag');handleFiles(e.dataT
 fi.onchange=()=>handleFiles(fi.files);
 
 async function handleFiles(files){
-  if(!currentUid){alert('Debes iniciar sesión para cargar documentos a la nube.');return;}
+  if(!currentUid){alert('Debes iniciar sesión.');return;}
+  if(!isAdmin){alert('Solo el administrador puede cargar documentos a la biblioteca compartida.');return;}
   for(const f of files){
     if(f.type!=='application/pdf' && !f.name.toLowerCase().endsWith('.pdf')){alert('Solo se aceptan PDF: '+f.name);continue;}
     if(f.size>12*1048576){alert('Archivo muy grande (máx 12 MB): '+f.name);continue;}
@@ -707,37 +711,55 @@ async function handleFiles(files){
     const head=new Uint8Array(await f.slice(0,5).arrayBuffer());
     if(!(head[0]===0x25&&head[1]===0x50&&head[2]===0x44&&head[3]===0x46)){alert('El archivo no es un PDF válido: '+f.name);continue;}
     const id='d'+Date.now()+Math.random().toString(36).slice(2,6);
-    const path='fuf_biblioteca/'+currentUid+'/'+id+'.pdf';
-    const item={id,name:f.name,size:f.size,use:true,added:Date.now(),path,subiendo:true};
-    state.biblioteca.push(item); renderDocs();
+    const path=SHARED_DIR+'/'+id+'.pdf';
+    const tmp={name:f.name,size:f.size,path,added:Date.now(),subiendo:true};
+    sharedDocs.push(tmp); renderDocs();
     try{
-      await firebase.storage().ref(path).put(f,{contentType:'application/pdf'});
-      delete item.subiendo;
+      await firebase.storage().ref(path).put(f,{contentType:'application/pdf',customMetadata:{name:f.name}});
+      tmp.subiendo=false;
     }catch(e){
-      state.biblioteca=state.biblioteca.filter(d=>d.id!==id);
+      sharedDocs=sharedDocs.filter(d=>d.path!==path);
       alert('No se pudo subir '+f.name+': '+e.message);
     }
     renderDocs();
   }
-  fi.value=''; bibSave();
+  fi.value='';
+}
+
+async function loadSharedDocs(){
+  if(!currentUid){ sharedDocs=[]; renderDocs(); return; }
+  try{
+    const res=await firebase.storage().ref(SHARED_DIR).listAll();
+    sharedDocs=await Promise.all(res.items.map(async it=>{
+      try{ const m=await it.getMetadata(); return {name:(m.customMetadata&&m.customMetadata.name)||it.name, size:Number(m.size)||0, path:it.fullPath, added:m.timeCreated?Date.parse(m.timeCreated):0}; }
+      catch(e){ return {name:it.name, size:0, path:it.fullPath, added:0}; }
+    }));
+  }catch(e){ console.warn('listAll biblioteca:',e.message); sharedDocs=[]; }
+  renderDocs();
 }
 
 function renderDocs(){
-  const docs=state.biblioteca||[];
   const list=$('#doclist'); if(!list) return; list.innerHTML='';
-  $('#docempty').style.display=docs.length?'none':'block';
-  docs.slice().sort((a,b)=>a.added-b.added).forEach(d=>{
+  const off=aiOff();
+  const docs=sharedDocs.slice().sort((a,b)=>(a.added||0)-(b.added||0));
+  const empty=$('#docempty');
+  if(empty){ empty.style.display=docs.length?'none':'block';
+    empty.textContent=isAdmin
+      ? 'Aún no hay normas cargadas. Súbelas aquí y quedarán disponibles para todos los usuarios.'
+      : 'El administrador aún no ha cargado normas en la biblioteca.'; }
+  docs.forEach(d=>{
     const el=document.createElement('div');el.className='docitem';
     el.innerHTML=`<div class="ic">PDF</div>
       <div class="info"><div class="nm">${esc(d.name)}</div><div class="sub">${d.subiendo?'subiendo…':fmtSize(d.size)}</div></div>
-      <label class="use"><input type="checkbox" ${d.use?'checked':''} ${d.subiendo?'disabled':''}> IA</label>
-      <button class="del" title="Eliminar" ${d.subiendo?'disabled':''}>✕</button>`;
-    el.querySelector('input').onchange=e=>{d.use=e.target.checked;bibSave();};
-    el.querySelector('.del').onclick=async()=>{
-      if(!confirm('¿Eliminar '+d.name+'?'))return;
-      try{ await firebase.storage().ref(d.path).delete(); }catch(e){ /* si ya no existe en Storage, igual lo quitamos de la lista */ }
-      state.biblioteca=state.biblioteca.filter(x=>x.id!==d.id);
-      bibSave(); renderDocs();
+      <label class="use"><input type="checkbox" ${off.has(d.path)?'':'checked'} ${d.subiendo?'disabled':''}> IA</label>
+      ${isAdmin?`<button class="del" title="Eliminar" ${d.subiendo?'disabled':''}>✕</button>`:''}`;
+    el.querySelector('input').onchange=e=>{const s=aiOff(); if(e.target.checked)s.delete(d.path);else s.add(d.path); aiOffSave(s);};
+    const del=el.querySelector('.del');
+    if(del) del.onclick=async()=>{
+      if(!confirm('¿Eliminar "'+d.name+'" de la biblioteca compartida? Se quita para TODOS los usuarios.'))return;
+      try{ await firebase.storage().ref(d.path).delete(); }catch(e){ /* si ya no existe, igual lo quitamos */ }
+      sharedDocs=sharedDocs.filter(x=>x.path!==d.path);
+      renderDocs();
     };
     list.appendChild(el);
   });
@@ -773,7 +795,8 @@ async function sendAI(){
   const sh=addMsg('shimmer','<div style="width:90%"></div><div style="width:70%"></div><div style="width:80%"></div>');
 
   // documentos seleccionados (solo metadatos: la función los lee desde Storage)
-  const docs=(state.biblioteca||[]).filter(d=>d.use && !d.subiendo).map(d=>({path:d.path,name:d.name}));
+  const off=aiOff();
+  const docs=sharedDocs.filter(d=>!off.has(d.path) && !d.subiendo).map(d=>({path:d.path,name:d.name}));
 
   try{
     const askClaude=firebase.functions('us-east1').httpsCallable('askClaude');
