@@ -462,6 +462,7 @@ body.gated{overflow:hidden}
         <input id="mpCompanyInput" placeholder="Nombre de la empresa…" autocomplete="off">
         <button id="mpOpenBtn" class="mp-btn mp-btn-primary">Abrir matriz →</button>
       </div>
+      <p id="mpSelMsg" class="mp-selmsg" style="display:none"></p>
       <div class="mp-sublbl">Empresas guardadas</div>
       <div id="mpCompanyList" class="mp-cards"></div>
       <p id="mpEmpty" class="mp-empty">Aún no has creado ninguna empresa. Escribe un nombre arriba y toca “Abrir matriz”.</p>
@@ -1222,6 +1223,7 @@ initApp();
 #viewMiper .mp-selrow{display:flex;gap:10px;max-width:640px;margin-bottom:8px}
 #viewMiper .mp-selrow input{flex:1;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:1rem;background:var(--surface);color:var(--text)}
 #viewMiper .mp-selrow input:focus{outline:2px solid var(--brand);outline-offset:1px}
+#viewMiper .mp-selmsg{color:var(--danger);font-size:.9rem;font-weight:700;margin:8px 0 0;display:flex;align-items:center;gap:6px}
 .mp-btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap}
 .mp-btn-primary{background:var(--brand);color:#fff}
 :root.dark .mp-btn-primary{background:#3b82f6}
@@ -1315,7 +1317,8 @@ initApp();
       list.appendChild(card);
     });
   }
-  function showHome(){ curId=null; q('#mpDetail').style.display='none'; q('#mpHome').style.display='block'; renderHome(); }
+  function showHome(){ curId=null; q('#mpDetail').style.display='none'; q('#mpHome').style.display='block'; renderHome();
+    var msg=q('#mpSelMsg'); if(msg) msg.style.display='none'; var inp=q('#mpCompanyInput'); if(inp){ inp.style.borderColor=''; try{inp.focus();}catch(e){} } }
   function showDetail(id){
     var c=findCompany(id); if(!c) return showHome();
     curId=id; editIdx=-1; resetForm();
@@ -1325,7 +1328,10 @@ initApp();
   }
   function openByName(name){
     name=(name||'').trim();
-    if(!name){ var inp=q('#mpCompanyInput'); inp.focus(); inp.placeholder='Escribe primero el nombre de la empresa…'; inp.style.borderColor='#dc2626'; setTimeout(function(){inp.style.borderColor='';},1500); return; }
+    if(!name){ var inp=q('#mpCompanyInput'); inp.focus(); inp.style.borderColor='#dc2626';
+      var msg=q('#mpSelMsg'); if(msg){ msg.innerHTML='⚠ Escribe el nombre de una empresa en el recuadro de arriba y luego toca «Abrir matriz».'; msg.style.display='flex'; }
+      return; }
+    var msg2=q('#mpSelMsg'); if(msg2) msg2.style.display='none'; q('#mpCompanyInput').style.borderColor='';
     var c=null;
     for(var i=0;i<DB.companies.length;i++){ if(DB.companies[i].nombre.toLowerCase()===name.toLowerCase()){c=DB.companies[i];break;} }
     if(!c){ c={id:uid(),nombre:name,riesgos:[],updatedAt:Date.now()}; DB.companies.push(c); persist(); }
@@ -1374,6 +1380,7 @@ initApp();
   /* ---- Eventos ---- */
   q('#mpOpenBtn').addEventListener('click',function(){ openByName(q('#mpCompanyInput').value); });
   q('#mpCompanyInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); openByName(this.value); } });
+  q('#mpCompanyInput').addEventListener('input',function(){ if(this.value.trim()){ var m=q('#mpSelMsg'); if(m) m.style.display='none'; this.style.borderColor=''; } });
   q('#mpCompanyList').addEventListener('click',function(e){
     var del=e.target.closest('.mp-cardx');
     if(del){ var c=findCompany(del.getAttribute('data-del')); if(c&&confirm('¿Borrar la empresa "'+c.nombre+'" y todos sus riesgos? No se puede deshacer.')){ DB.companies=DB.companies.filter(function(x){return x.id!==c.id;}); persist(); renderHome(); } return; }
