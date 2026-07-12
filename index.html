@@ -489,6 +489,26 @@ body.gated{overflow:hidden}
           <div class="mp-field"><label>Puesto de trabajo</label><input id="f_puesto" placeholder="Ej: Operador retroexcavadora"></div>
           <div class="mp-field"><label>Peligro</label><input id="f_pel" placeholder="Ej: Talud inestable"></div>
           <div class="mp-field"><label>Riesgo (evento / consecuencia)</label><input id="f_rie" placeholder="Ej: Sepultamiento"></div>
+          <div class="mp-field"><label>Tipo de riesgo</label>
+            <select id="f_tipo">
+              <option value="">– Selecciona un tipo –</option>
+              <option value="Mecánico">Mecánico (golpes, atrapamiento, cortes)</option>
+              <option value="Físico">Físico (ruido, vibración, temperatura, presión)</option>
+              <option value="Químico">Químico (polvos, gases, vapores, sustancias)</option>
+              <option value="Biológico">Biológico (virus, bacterias, hongos)</option>
+              <option value="Ergonómico">Ergonómico (TMERT, sobreesfuerzo, posturas)</option>
+              <option value="Psicosocial">Psicosocial (carga mental, estrés laboral)</option>
+              <option value="Violencia y acoso">Violencia y acoso (Ley Karin)</option>
+              <option value="Eléctrico">Eléctrico (contacto directo/indirecto, arco)</option>
+              <option value="Locativo">Locativo (caídas mismo nivel, orden y aseo)</option>
+              <option value="Trabajo en altura">Trabajo en altura (caída distinto nivel)</option>
+              <option value="Incendio / Explosión">Incendio / Explosión</option>
+              <option value="Radiaciones">Radiaciones (ionizantes / no ionizantes)</option>
+              <option value="Tránsito / Conducción">Tránsito / Conducción de vehículos</option>
+              <option value="Ambiental / Natural">Ambiental / Natural (sismo, clima, geográfico)</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
           <div class="mp-pc">
             <div class="mp-field"><label>Probabilidad</label>
               <select id="f_p"><option value="">–</option><option value="1">1 · Muy baja</option><option value="2">2 · Baja</option><option value="3">3 · Media</option><option value="4">4 · Alta</option></select>
@@ -512,7 +532,7 @@ body.gated{overflow:hidden}
           <div class="mp-scroll">
             <table class="mp-table" id="mpTable">
               <thead><tr>
-                <th style="width:26px">N°</th><th>Proceso</th><th>Puesto</th><th>Peligro</th><th>Riesgo</th>
+                <th style="width:26px">N°</th><th>Proceso</th><th>Puesto</th><th>Peligro</th><th>Riesgo</th><th style="width:90px">Tipo</th>
                 <th style="width:32px">P</th><th style="width:32px">C</th><th style="width:38px">VR</th><th style="width:74px">Nivel</th>
                 <th>Medidas de control</th><th style="width:100px">Responsable</th><th style="width:66px" class="mp-noprint">Acciones</th>
               </tr></thead>
@@ -1304,7 +1324,8 @@ initApp();
     renderMatrix();
   }
   function openByName(name){
-    name=(name||'').trim(); if(!name) return;
+    name=(name||'').trim();
+    if(!name){ var inp=q('#mpCompanyInput'); inp.focus(); inp.placeholder='Escribe primero el nombre de la empresa…'; inp.style.borderColor='#dc2626'; setTimeout(function(){inp.style.borderColor='';},1500); return; }
     var c=null;
     for(var i=0;i<DB.companies.length;i++){ if(DB.companies[i].nombre.toLowerCase()===name.toLowerCase()){c=DB.companies[i];break;} }
     if(!c){ c={id:uid(),nombre:name,riesgos:[],updatedAt:Date.now()}; DB.companies.push(c); persist(); }
@@ -1321,7 +1342,7 @@ initApp();
     c.riesgos.forEach(function(r,i){
       var vr=(+r.p)*(+r.c), nv=nivelFor(vr), tr=document.createElement('tr');
       tr.innerHTML='<td class="mp-num">'+(i+1)+'</td>'+
-        '<td>'+esc(r.proc)+'</td><td>'+esc(r.puesto)+'</td><td>'+esc(r.pel)+'</td><td>'+esc(r.rie)+'</td>'+
+        '<td>'+esc(r.proc)+'</td><td>'+esc(r.puesto)+'</td><td>'+esc(r.pel)+'</td><td>'+esc(r.rie)+'</td><td>'+esc(r.tipo)+'</td>'+
         '<td class="mp-c">'+esc(r.p)+'</td><td class="mp-c">'+esc(r.c)+'</td><td class="mp-c">'+vr+'</td>'+
         '<td class="mp-c"><span class="mp-b '+nv[1]+'">'+nv[0]+'</span></td>'+
         '<td>'+esc(r.med)+'</td><td>'+esc(r.resp)+'</td>'+
@@ -1331,15 +1352,19 @@ initApp();
   }
 
   /* ---- Formulario ---- */
-  function readForm(){ return {proc:q('#f_proc').value.trim(),puesto:q('#f_puesto').value.trim(),pel:q('#f_pel').value.trim(),rie:q('#f_rie').value.trim(),p:q('#f_p').value,c:q('#f_c').value,med:q('#f_med').value.trim(),resp:q('#f_resp').value.trim()}; }
-  function fillForm(r){ q('#f_proc').value=r.proc||''; q('#f_puesto').value=r.puesto||''; q('#f_pel').value=r.pel||''; q('#f_rie').value=r.rie||''; q('#f_p').value=r.p||''; q('#f_c').value=r.c||''; q('#f_med').value=r.med||''; q('#f_resp').value=r.resp||''; updatePrev(); }
+  function readForm(){ return {proc:q('#f_proc').value.trim(),puesto:q('#f_puesto').value.trim(),pel:q('#f_pel').value.trim(),rie:q('#f_rie').value.trim(),tipo:q('#f_tipo').value,p:q('#f_p').value,c:q('#f_c').value,med:q('#f_med').value.trim(),resp:q('#f_resp').value.trim()}; }
+  function fillForm(r){ q('#f_proc').value=r.proc||''; q('#f_puesto').value=r.puesto||''; q('#f_pel').value=r.pel||''; q('#f_rie').value=r.rie||''; q('#f_tipo').value=r.tipo||''; q('#f_p').value=r.p||''; q('#f_c').value=r.c||''; q('#f_med').value=r.med||''; q('#f_resp').value=r.resp||''; updatePrev(); }
   function resetForm(){ q('#mpForm').reset(); editIdx=-1; q('#mpFormTitle').textContent='➕ Agregar riesgo'; q('#mpSaveBtn').textContent='Guardar riesgo'; q('#mpCancelBtn').style.display='none'; updatePrev(); }
   function updatePrev(){ var p=+q('#f_p').value,c=+q('#f_c').value,prev=q('#mpPrev');
     if(!p||!c){ prev.innerHTML='<span class="mp-b mp-none">—</span> <span class="mp-prevtxt">Nivel de riesgo aparecerá aquí</span>'; return; }
     var vr=p*c,nv=nivelFor(vr); prev.innerHTML='<span class="mp-b '+nv[1]+'">'+nv[0]+'</span> <span class="mp-prevtxt">VR = '+p+' × '+c+' = '+vr+'</span>'; }
   function submitForm(e){
     e.preventDefault();
-    var c=findCompany(curId); if(!c) return;
+    var c=findCompany(curId);
+    if(!c){ // la empresa se perdió (p.ej. por sincronización): la recuperamos en vez de fallar en silencio
+      c={id:curId||uid(),nombre:(q('#mpDetailName').textContent||'Empresa').trim()||'Empresa',riesgos:[],updatedAt:Date.now()};
+      curId=c.id; DB.companies.push(c);
+    }
     var r=readForm();
     if(!r.proc||!r.pel||!r.rie||!r.p||!r.c){ alert('Completa al menos: Proceso, Peligro, Riesgo, Probabilidad y Consecuencia.'); return; }
     if(editIdx>=0) c.riesgos[editIdx]=r; else c.riesgos.push(r);
