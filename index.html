@@ -110,9 +110,11 @@ main{max-width:840px;margin:0 auto;padding:14px 12px 90px}
 .plan.show{display:grid}
 .plan .full{grid-column:1/-1}
 .plan label{display:flex;flex-direction:column;gap:3px;font-size:.7rem;color:var(--muted);font-weight:600}
-.plan input,.plan textarea{border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:var(--bg);color:var(--text);width:100%}
+.plan input,.plan textarea,.plan select{border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:var(--bg);color:var(--text);width:100%}
 .plan textarea{resize:vertical;min-height:44px}
 .toggleplan{font-size:.78rem;color:var(--warning);background:none;border:0;padding:6px 0;font-weight:600}
+.avchip{display:inline-block;font-size:.66rem;font-weight:700;padding:1px 7px;border-radius:7px;color:#fff;vertical-align:middle}
+.avchip.pendiente{background:#9ca3af}.avchip.en_proceso{background:#d97706}.avchip.cerrada{background:#16a34a}
 
 /* BIBLIOTECA */
 .dropzone{border:2px dashed var(--border);border-radius:16px;padding:26px 16px;text-align:center;background:var(--surface);cursor:pointer;transition:.15s}
@@ -568,6 +570,7 @@ function renderModules(){
 }
 function card(q){
   const a=ans(q.id);
+  const av=(a.plan.avance)||'';
   const el=document.createElement('div');
   el.className='card'+(q.critica?' crit':''); el.id='q'+q.id;
   el.dataset.search=(q.id+' '+q.pregunta+' '+q.articulo).toLowerCase();
@@ -590,6 +593,12 @@ function card(q){
       <div class="plan">
         <label>Responsable<input data-f="responsable" value="${esc(a.plan.responsable)}"></label>
         <label>Fecha límite<input type="date" data-f="fecha_limite" value="${esc(a.plan.fecha_limite)}"></label>
+        <label class="full">Estado de la acción (seguimiento)<select data-f="avance">
+          <option value="" ${av===''?'selected':''}>— Sin definir —</option>
+          <option value="pendiente" ${av==='pendiente'?'selected':''}>Pendiente</option>
+          <option value="en_proceso" ${av==='en_proceso'?'selected':''}>En proceso</option>
+          <option value="cerrada" ${av==='cerrada'?'selected':''}>Cerrada</option>
+        </select></label>
         <label class="full">Observaciones<textarea data-f="observaciones">${esc(a.plan.observaciones)}</textarea></label>
       </div>
     </div>`;
@@ -604,10 +613,10 @@ function card(q){
   });
   // plan toggle
   const pt=el.querySelector('.toggleplan'), plan=el.querySelector('.plan');
-  if(a.plan.responsable||a.plan.fecha_limite||a.plan.observaciones){plan.classList.add('show');pt.textContent='− Plan de acción';}
+  if(a.plan.responsable||a.plan.fecha_limite||a.plan.observaciones||a.plan.avance){plan.classList.add('show');pt.textContent='− Plan de acción';}
   pt.onclick=()=>{plan.classList.toggle('show');pt.textContent=(plan.classList.contains('show')?'−':'+')+' Plan de acción';};
   el.querySelectorAll('.plan [data-f]').forEach(inp=>{
-    inp.oninput=()=>{const c=ans(q.id);c.plan[inp.dataset.f]=inp.value;state.answers[q.id]=c;save();};
+    inp.oninput=inp.onchange=()=>{const c=ans(q.id);c.plan[inp.dataset.f]=inp.value;state.answers[q.id]=c;save();};
   });
   return el;
 }
@@ -981,6 +990,11 @@ function informeContent(h,answers){
   const col=v=>v>=85?'#16a34a':v>=60?'#d97706':'#dc2626';
   const critFail=FUF_DATA.filter(q=>q.critica && (answers[q.id]||{}).estado==='no_cumple');
   const gaps=FUF_DATA.filter(q=>(answers[q.id]||{}).estado==='no_cumple').sort((a,b)=>(b.critica?1:0)-(a.critica?1:0)||a.id-b.id);
+  const AVL={pendiente:['Pendiente','#9ca3af'],en_proceso:['En proceso','#d97706'],cerrada:['Cerrada','#16a34a']};
+  const avOf=id=>((answers[id]||{}).plan||{}).avance||'pendiente';
+  const acc=gaps.map(q=>avOf(q.id));
+  const cerr=acc.filter(x=>x==='cerrada').length, proc=acc.filter(x=>x==='en_proceso').length, pend2=acc.filter(x=>x==='pendiente').length;
+  const pctAv=acc.length?Math.round(cerr/acc.length*100):100;
   let modRows='';
   Object.keys(MODULES).map(Number).sort((a,b)=>a-b).forEach(m=>{
     const items=MODULES[m].items; let c=0,nc=0,na=0;
@@ -991,8 +1005,9 @@ function informeContent(h,answers){
   const gapHtml=gaps.length?gaps.map(q=>{
     const p=(answers[q.id]||{}).plan||{};
     const plan=[p.responsable&&('Responsable: '+esc(p.responsable)),p.fecha_limite&&('Fecha límite: '+esc(p.fecha_limite)),p.observaciones&&('Obs.: '+esc(p.observaciones))].filter(Boolean).join(' · ');
+    const al=AVL[avOf(q.id)];
     return `<div class="gap">
-      <div class="gh">#${q.id} ${q.critica?'<span class="crib">CRÍTICA</span> ':''}${esc(q.pregunta)}</div>
+      <div class="gh">#${q.id} ${q.critica?'<span class="crib">CRÍTICA</span> ':''}${esc(q.pregunta)} <span style="color:${al[1]};font-weight:700;font-size:.72rem;white-space:nowrap">● ${al[0]}</span></div>
       <div class="ga">${esc(q.articulo)}</div>
       <div class="gs"><b>Acción sugerida:</b> ${esc(q.plan_defecto||'—')}</div>
       ${plan?`<div class="gp"><b>Plan definido:</b> ${plan}</div>`:'<div class="gp gpn">Plan de acción pendiente de definir</div>'}
@@ -1050,6 +1065,12 @@ function informeContent(h,answers){
     ${critFail.length?`<div class="critbox">⚠ ${critFail.length} hallazgo(s) CRÍTICO(s) en incumplimiento — atención prioritaria.</div>`:''}
     <div class="secn">Cumplimiento por módulo</div>
     <table><thead><tr><th>Módulo</th><th class="ce">Ítems</th><th class="ce">Cumple</th><th class="ce">No cumple</th><th class="ce">N/A</th><th class="ce">%</th></tr></thead><tbody>${modRows}</tbody></table>
+    ${gaps.length?`<div class="secn">Avance del plan de acción</div>
+    <div class="hero">
+      <div class="big" style="color:${col(pctAv)}">${pctAv}%</div>
+      <div class="kpis"><div style="font-weight:700;margin-bottom:3px">Acciones cerradas del plan</div>
+      <div><span style="color:#16a34a">● Cerradas: <b>${cerr}</b></span><span style="color:#d97706">● En proceso: <b>${proc}</b></span><span style="color:#9ca3af">● Pendientes: <b>${pend2}</b></span><span>Total: <b>${acc.length}</b></span></div></div>
+    </div>`:''}
     <div class="secn">Hallazgos (incumplimientos) y plan de acción — ${gaps.length}</div>
     ${gapHtml}
     ${naItems.length?`<div class="secn">No aplican — excluidos del cálculo (${naItems.length})</div>
