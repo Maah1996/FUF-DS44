@@ -983,10 +983,10 @@ function informeContent(h,answers){
   const gaps=FUF_DATA.filter(q=>(answers[q.id]||{}).estado==='no_cumple').sort((a,b)=>(b.critica?1:0)-(a.critica?1:0)||a.id-b.id);
   let modRows='';
   Object.keys(MODULES).map(Number).sort((a,b)=>a-b).forEach(m=>{
-    const items=MODULES[m].items; let c=0,na=0;
-    items.forEach(q=>{const e=(answers[q.id]||{}).estado; if(e==='cumple')c++;else if(e==='no_aplica')na++;});
-    const den=items.length-na, pct=den>0?Math.round(c/den*100):0;
-    modRows+=`<tr><td>${esc(MODULES[m].n)}</td><td class="ce">${c}/${den}</td><td class="ce" style="color:${den>0?col(pct):'#999'};font-weight:700">${den>0?pct+'%':'—'}</td></tr>`;
+    const items=MODULES[m].items; let c=0,nc=0,na=0;
+    items.forEach(q=>{const e=(answers[q.id]||{}).estado; if(e==='cumple')c++;else if(e==='no_cumple')nc++;else if(e==='no_aplica')na++;});
+    const total=items.length, den=total-na, pct=den>0?Math.round(c/den*100):0;
+    modRows+=`<tr><td>${esc(MODULES[m].n)}</td><td class="ce">${total}</td><td class="ce">${c}</td><td class="ce">${nc}</td><td class="ce">${na}</td><td class="ce" style="color:${den>0?col(pct):'#999'};font-weight:700">${den>0?pct+'%':'—'}</td></tr>`;
   });
   const gapHtml=gaps.length?gaps.map(q=>{
     const p=(answers[q.id]||{}).plan||{};
@@ -1049,7 +1049,7 @@ function informeContent(h,answers){
     </div>
     ${critFail.length?`<div class="critbox">⚠ ${critFail.length} hallazgo(s) CRÍTICO(s) en incumplimiento — atención prioritaria.</div>`:''}
     <div class="secn">Cumplimiento por módulo</div>
-    <table><thead><tr><th>Módulo</th><th class="ce">Cumple/Aplicables</th><th class="ce">%</th></tr></thead><tbody>${modRows}</tbody></table>
+    <table><thead><tr><th>Módulo</th><th class="ce">Ítems</th><th class="ce">Cumple</th><th class="ce">No cumple</th><th class="ce">N/A</th><th class="ce">%</th></tr></thead><tbody>${modRows}</tbody></table>
     <div class="secn">Hallazgos (incumplimientos) y plan de acción — ${gaps.length}</div>
     ${gapHtml}
     ${naItems.length?`<div class="secn">No aplican — excluidos del cálculo (${naItems.length})</div>
