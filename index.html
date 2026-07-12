@@ -530,6 +530,14 @@ body.gated{overflow:hidden}
         <!-- Matriz acumulada -->
         <div class="mp-matrixwrap">
           <div class="mp-mtitle"><b>Matriz de riesgos</b><span id="mpCount" class="mp-count">0 riesgos</span></div>
+          <div class="mp-legend">
+            <div><b>Nivel de riesgo (VR = P × C):</b></div>
+            <div class="mp-lg"><span class="sw" style="background:#2f9e44"></span> Bajo (1–3)</div>
+            <div class="mp-lg"><span class="sw" style="background:#f0a500"></span> Medio (4–6)</div>
+            <div class="mp-lg"><span class="sw" style="background:#e8590c"></span> Alto (8–9)</div>
+            <div class="mp-lg"><span class="sw" style="background:#c92a2a"></span> Crítico (12–16)</div>
+            <div class="mp-jer">Jerarquía de control DS 44: 1° Eliminación · 2° Sustitución · 3° Ingeniería · 4° Administrativas · 5° EPP</div>
+          </div>
           <div class="mp-scroll">
             <table class="mp-table" id="mpTable">
               <thead><tr>
@@ -541,14 +549,6 @@ body.gated{overflow:hidden}
             </table>
           </div>
           <p id="mpNoRisks" class="mp-empty">Aún no hay riesgos en esta empresa. Agrega el primero con el formulario de la izquierda.</p>
-          <div class="mp-legend">
-            <div><b>Nivel de riesgo (VR = P × C):</b></div>
-            <div class="mp-lg"><span class="sw" style="background:#2f9e44"></span> Bajo (1–3)</div>
-            <div class="mp-lg"><span class="sw" style="background:#f0a500"></span> Medio (4–6)</div>
-            <div class="mp-lg"><span class="sw" style="background:#e8590c"></span> Alto (8–9)</div>
-            <div class="mp-lg"><span class="sw" style="background:#c92a2a"></span> Crítico (12–16)</div>
-            <div class="mp-jer">Jerarquía de control DS 44: 1° Eliminación · 2° Sustitución · 3° Ingeniería · 4° Administrativas · 5° EPP</div>
-          </div>
         </div>
       </div>
     </div>
@@ -786,6 +786,7 @@ function switchView(v){
   $$('nav.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   $$('.view').forEach(s=>s.classList.toggle('active',s.id==='view'+v));
   $('#scorebar').style.display=v==='Fiscalizacion'?'':'none';
+  document.querySelector('main').classList.toggle('miper-wide',v==='Miper'); // MIPER: ancho completo, alineado a la izquierda
 }
 $$('nav.tabs button').forEach(b=>b.onclick=()=>{ b.dataset.view==='Admin'?openAdmin():switchView(b.dataset.view); });
 
@@ -1217,6 +1218,7 @@ initApp();
 
 <!-- ===== MIPER (módulo DS 44/2024) — base de datos por empresa ===== -->
 <style>
+main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pegado a la izquierda */
 #viewMiper .mp-h2{font-size:1.3rem;margin:0 0 4px}
 #viewMiper .mp-sub{color:var(--muted);font-size:.9rem;margin:0 0 16px}
 #viewMiper .mp-sublbl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:8px 0 10px}
@@ -1271,7 +1273,7 @@ initApp();
 #viewMiper .mp-actions{white-space:nowrap;text-align:center}
 #viewMiper .mp-actions button{border:0;background:var(--surface2);border-radius:7px;padding:5px 8px;margin:0 1px;cursor:pointer;font-size:.85rem}
 #viewMiper .mp-actions button:hover{background:var(--border)}
-#viewMiper .mp-legend{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:.8rem}
+#viewMiper .mp-legend{margin:0 0 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:.8rem}
 #viewMiper .mp-lg{display:flex;gap:7px;align-items:center}
 #viewMiper .mp-lg .sw,#viewMiper .mp-legend .sw{width:18px;height:13px;border-radius:3px;display:inline-block}
 #viewMiper .mp-jer{flex-basis:100%;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);padding-top:8px;margin-top:2px}
