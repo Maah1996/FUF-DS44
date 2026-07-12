@@ -447,66 +447,91 @@ body.gated{overflow:hidden}
 
   <!-- MIPER -->
   <section class="view" id="viewMiper">
-    <div class="fbar">
-      <button id="miperAdd">＋ Agregar peligro</button>
-      <button id="miperPrint">🖨 Imprimir / PDF</button>
-      <button id="miperReset" class="danger">↺ Restaurar catálogo</button>
-    </div>
-    <div class="hdrfields">
-      <label>Empresa / Unidad<input id="mp_empresa" placeholder="Nombre de la entidad"></label>
-      <label>Área / Proceso evaluado<input id="mp_area" placeholder="Área o faena"></label>
-      <label>Fecha<input id="mp_fecha" type="date"></label>
-      <label>Elaboró<input id="mp_elaboro" placeholder="Nombre"></label>
-    </div>
-    <div class="miper-scroll">
-      <table class="miper-table">
-        <thead>
-          <tr>
-            <th style="width:30px">N°</th>
-            <th style="width:150px">Proceso / Actividad</th>
-            <th style="width:165px">Peligro</th>
-            <th style="width:175px">Riesgo (evento / consecuencia)</th>
-            <th style="width:56px">P</th>
-            <th style="width:56px">C</th>
-            <th style="width:46px">VR</th>
-            <th style="width:78px">Nivel</th>
-            <th>Medidas de control (jerarquía DS 44)</th>
-            <th style="width:110px">Responsable</th>
-            <th style="width:86px">Plazo</th>
-            <th style="width:30px" class="mp-hidecol"></th>
-          </tr>
-        </thead>
-        <tbody id="miperTb"></tbody>
-      </table>
-    </div>
-    <div class="miper-legend">
-      <div>
-        <div class="mp-blk">Matriz de evaluación (P × C)</div>
-        <table class="mp-mtx">
-          <tr><th></th><th>C1</th><th>C2</th><th>C3</th><th>C4</th></tr>
-          <tr><td class="ax">P4</td><td style="background:#f0a500">4</td><td style="background:#e8590c;color:#fff">8</td><td style="background:#c92a2a;color:#fff">12</td><td style="background:#c92a2a;color:#fff">16</td></tr>
-          <tr><td class="ax">P3</td><td style="background:#2f9e44;color:#fff">3</td><td style="background:#f0a500">6</td><td style="background:#e8590c;color:#fff">9</td><td style="background:#c92a2a;color:#fff">12</td></tr>
-          <tr><td class="ax">P2</td><td style="background:#2f9e44;color:#fff">2</td><td style="background:#f0a500">4</td><td style="background:#e8590c;color:#fff">6</td><td style="background:#e8590c;color:#fff">8</td></tr>
-          <tr><td class="ax">P1</td><td style="background:#2f9e44;color:#fff">1</td><td style="background:#2f9e44;color:#fff">2</td><td style="background:#2f9e44;color:#fff">3</td><td style="background:#f0a500">4</td></tr>
-        </table>
-      </div>
-      <div>
-        <div class="mp-blk">Nivel de riesgo</div>
-        <div class="mp-lvl"><span class="sw" style="background:#2f9e44"></span> <b>Bajo (1–3)</b> — mantener y monitorear</div>
-        <div class="mp-lvl"><span class="sw" style="background:#f0a500"></span> <b>Medio (4–6)</b> — medidas en plazo definido</div>
-        <div class="mp-lvl"><span class="sw" style="background:#e8590c"></span> <b>Alto (8–9)</b> — acción prioritaria e inmediata</div>
-        <div class="mp-lvl"><span class="sw" style="background:#c92a2a"></span> <b>Crítico (12–16)</b> — detener tarea hasta controlar</div>
-      </div>
-      <div>
-        <div class="mp-blk">Escalas</div>
-        <div class="mp-scales"><b>P — Probabilidad:</b> 1 muy baja · 2 baja · 3 media · 4 alta<br>
-        <b>C — Consecuencia:</b> 1 leve · 2 moderada · 3 grave · 4 fatal<br>
-        <b>Jerarquía de control:</b> 1° Eliminación · 2° Sustitución · 3° Ingeniería · 4° Administrativos · 5° EPP</div>
-      </div>
-    </div>
-    <p class="miper-note">Modelo genérico conforme al DS N° 44/2024, aplicable a cualquier rubro. La Sección de catálogo trae peligros comunes: ajústalos a tu lugar de trabajo. La evaluación de P y C es responsabilidad de quien la elabora junto al Comité Paritario / experto en prevención. Los datos de esta MIPER se guardan en este dispositivo.</p>
-  </section>
 
+    <!-- Encabezado solo para impresión -->
+    <div id="mpPrintHead" class="mp-printhead">
+      <div class="mp-pht">Matriz de Identificación de Peligros y Evaluación de Riesgos (MIPER)</div>
+      <div class="mp-phs">DS N° 44/2024 · Empresa: <b id="mpPrintCompany"></b> · Impreso: <span id="mpPrintDate"></span></div>
+    </div>
+
+    <!-- PANTALLA 1 · elegir empresa -->
+    <div id="mpHome">
+      <h2 class="mp-h2">Matriz de Riesgos por Empresa</h2>
+      <p class="mp-sub">Escribe el nombre de una empresa para crear o abrir su matriz de riesgos (MIPER · DS 44/2024).</p>
+      <div class="mp-selrow">
+        <input id="mpCompanyInput" placeholder="Nombre de la empresa…" autocomplete="off">
+        <button id="mpOpenBtn" class="mp-btn mp-btn-primary">Abrir matriz →</button>
+      </div>
+      <div class="mp-sublbl">Empresas guardadas</div>
+      <div id="mpCompanyList" class="mp-cards"></div>
+      <p id="mpEmpty" class="mp-empty">Aún no has creado ninguna empresa. Escribe un nombre arriba y toca “Abrir matriz”.</p>
+    </div>
+
+    <!-- PANTALLA 2 · empresa abierta -->
+    <div id="mpDetail" style="display:none">
+      <div class="mp-detailhead">
+        <div>
+          <button id="mpBackBtn" class="mp-link">← Cambiar de empresa</button>
+          <h2 class="mp-h2" id="mpDetailName">Empresa</h2>
+          <p class="mp-sub" id="mpDetailMeta">0 riesgos</p>
+        </div>
+        <div class="mp-detailtools">
+          <button id="mpPrintBtn" class="mp-btn mp-btn-ghost">🖨 Imprimir / PDF</button>
+          <button id="mpDelCompanyBtn" class="mp-btn mp-btn-danger">🗑 Borrar empresa</button>
+        </div>
+      </div>
+
+      <div class="mp-grid">
+        <!-- Formulario agregar/editar riesgo -->
+        <form id="mpForm" class="mp-form" autocomplete="off">
+          <h3 id="mpFormTitle">➕ Agregar riesgo</h3>
+          <div class="mp-field"><label>Proceso / Actividad</label><input id="f_proc" placeholder="Ej: Excavación"></div>
+          <div class="mp-field"><label>Puesto de trabajo</label><input id="f_puesto" placeholder="Ej: Operador retroexcavadora"></div>
+          <div class="mp-field"><label>Peligro</label><input id="f_pel" placeholder="Ej: Talud inestable"></div>
+          <div class="mp-field"><label>Riesgo (evento / consecuencia)</label><input id="f_rie" placeholder="Ej: Sepultamiento"></div>
+          <div class="mp-pc">
+            <div class="mp-field"><label>Probabilidad</label>
+              <select id="f_p"><option value="">–</option><option value="1">1 · Muy baja</option><option value="2">2 · Baja</option><option value="3">3 · Media</option><option value="4">4 · Alta</option></select>
+            </div>
+            <div class="mp-field"><label>Consecuencia</label>
+              <select id="f_c"><option value="">–</option><option value="1">1 · Leve</option><option value="2">2 · Moderada</option><option value="3">3 · Grave</option><option value="4">4 · Fatal</option></select>
+            </div>
+          </div>
+          <div class="mp-prev" id="mpPrev"><span class="mp-b mp-none">—</span> <span class="mp-prevtxt">Nivel de riesgo aparecerá aquí</span></div>
+          <div class="mp-field"><label>Medidas de control (jerarquía DS 44)</label><textarea id="f_med" rows="2" placeholder="Eliminación → Sustitución → Ingeniería → Administrativas → EPP"></textarea></div>
+          <div class="mp-field"><label>Responsable</label><input id="f_resp" placeholder="Ej: Jefe de obra"></div>
+          <div class="mp-formbtns">
+            <button type="submit" class="mp-btn mp-btn-green" id="mpSaveBtn">Guardar riesgo</button>
+            <button type="button" class="mp-btn mp-btn-ghost" id="mpCancelBtn" style="display:none">Cancelar</button>
+          </div>
+        </form>
+
+        <!-- Matriz acumulada -->
+        <div class="mp-matrixwrap">
+          <div class="mp-mtitle"><b>Matriz de riesgos</b><span id="mpCount" class="mp-count">0 riesgos</span></div>
+          <div class="mp-scroll">
+            <table class="mp-table" id="mpTable">
+              <thead><tr>
+                <th style="width:26px">N°</th><th>Proceso</th><th>Puesto</th><th>Peligro</th><th>Riesgo</th>
+                <th style="width:32px">P</th><th style="width:32px">C</th><th style="width:38px">VR</th><th style="width:74px">Nivel</th>
+                <th>Medidas de control</th><th style="width:100px">Responsable</th><th style="width:66px" class="mp-noprint">Acciones</th>
+              </tr></thead>
+              <tbody id="mpTbody"></tbody>
+            </table>
+          </div>
+          <p id="mpNoRisks" class="mp-empty">Aún no hay riesgos en esta empresa. Agrega el primero con el formulario de la izquierda.</p>
+          <div class="mp-legend">
+            <div><b>Nivel de riesgo (VR = P × C):</b></div>
+            <div class="mp-lg"><span class="sw" style="background:#2f9e44"></span> Bajo (1–3)</div>
+            <div class="mp-lg"><span class="sw" style="background:#f0a500"></span> Medio (4–6)</div>
+            <div class="mp-lg"><span class="sw" style="background:#e8590c"></span> Alto (8–9)</div>
+            <div class="mp-lg"><span class="sw" style="background:#c92a2a"></span> Crítico (12–16)</div>
+            <div class="mp-jer">Jerarquía de control DS 44: 1° Eliminación · 2° Sustitución · 3° Ingeniería · 4° Administrativas · 5° EPP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
   <!-- PANEL ADMIN -->
   <section class="view" id="viewAdmin">
     <div class="admin-head">
@@ -1169,106 +1194,190 @@ function wireTools(){
 initApp();
 </script>
 
-<!-- ===== MIPER (módulo DS 44/2024) ===== -->
+<!-- ===== MIPER (módulo DS 44/2024) — base de datos por empresa ===== -->
 <style>
-#viewMiper .miper-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
-table.miper-table{border-collapse:collapse;width:100%;min-width:1080px;font-size:.82rem}
-.miper-table th,.miper-table td{border:1px solid var(--border);padding:7px 8px;vertical-align:top;text-align:left}
-.miper-table thead th{background:var(--surface2);color:var(--text);font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;text-align:center;position:sticky;top:0}
-.miper-table td[contenteditable]:focus,.miper-table .mp-proc:focus{outline:2px solid var(--brand);outline-offset:-2px;background:var(--surface2)}
-.miper-table .mp-num{text-align:center;color:var(--muted);font-weight:600}
-.miper-table .mp-proc{font-weight:600}
-.miper-table .mp-cat{font-size:.7rem;color:var(--muted);font-style:italic;margin-top:2px}
-.miper-table select{border:1px solid var(--border);border-radius:7px;padding:4px;background:var(--bg);color:var(--text);width:48px;text-align:center}
-.miper-table .mp-vr,.miper-table .mp-nivel{text-align:center;font-weight:700}
-.mp-b{display:inline-block;padding:3px 8px;border-radius:20px;color:#fff;font-size:.68rem;min-width:52px;text-align:center}
+#viewMiper .mp-h2{font-size:1.3rem;margin:0 0 4px}
+#viewMiper .mp-sub{color:var(--muted);font-size:.9rem;margin:0 0 16px}
+#viewMiper .mp-sublbl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:8px 0 10px}
+#viewMiper .mp-selrow{display:flex;gap:10px;max-width:640px;margin-bottom:8px}
+#viewMiper .mp-selrow input{flex:1;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:1rem;background:var(--surface);color:var(--text)}
+#viewMiper .mp-selrow input:focus{outline:2px solid var(--brand);outline-offset:1px}
+.mp-btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap}
+.mp-btn-primary{background:var(--brand);color:#fff}
+:root.dark .mp-btn-primary{background:#3b82f6}
+.mp-btn-green{background:#059669;color:#fff}
+.mp-btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.mp-btn-danger{background:var(--surface);color:var(--danger);border:1px solid var(--border)}
+.mp-btn-danger:hover{border-color:var(--danger)}
+#viewMiper .mp-cards{display:flex;gap:12px;flex-wrap:wrap}
+#viewMiper .mp-card{position:relative;border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:16px 18px;min-width:210px;border-left:4px solid var(--brand);cursor:pointer}
+#viewMiper .mp-card:hover{border-left-color:#3b82f6;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+#viewMiper .mp-cardname{font-weight:700;font-size:1rem;padding-right:20px}
+#viewMiper .mp-cardmeta{font-size:.8rem;color:var(--muted);margin-top:3px}
+#viewMiper .mp-cardx{position:absolute;top:8px;right:8px;border:0;background:none;color:var(--muted);font-size:.85rem;cursor:pointer;padding:2px 5px;border-radius:6px}
+#viewMiper .mp-cardx:hover{background:var(--surface2);color:var(--danger)}
+#viewMiper .mp-empty{color:var(--muted);font-size:.88rem;margin-top:12px}
+#viewMiper .mp-detailhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+#viewMiper .mp-link{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;text-decoration:underline;padding:0;margin-bottom:6px}
+#viewMiper .mp-detailtools{display:flex;gap:8px;flex-wrap:wrap}
+#viewMiper .mp-grid{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
+@media (max-width:820px){ #viewMiper .mp-grid{grid-template-columns:1fr} }
+#viewMiper .mp-form{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+#viewMiper .mp-form h3{font-size:1rem;margin-bottom:14px}
+#viewMiper .mp-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+#viewMiper .mp-field label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+#viewMiper .mp-field input,#viewMiper .mp-field select,#viewMiper .mp-field textarea{border:1px solid var(--border);border-radius:9px;padding:9px 10px;font-size:.9rem;background:var(--bg);color:var(--text);font-family:inherit}
+#viewMiper .mp-field input:focus,#viewMiper .mp-field select:focus,#viewMiper .mp-field textarea:focus{outline:2px solid var(--brand);outline-offset:1px}
+#viewMiper .mp-pc{display:flex;gap:10px}
+#viewMiper .mp-pc .mp-field{flex:1}
+#viewMiper .mp-prev{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:9px;padding:9px 12px;margin-bottom:12px;font-size:.82rem}
+#viewMiper .mp-prevtxt{color:var(--muted)}
+#viewMiper .mp-formbtns{display:flex;gap:8px;margin-top:4px}
+#viewMiper .mp-formbtns .mp-btn{flex:1}
+#viewMiper .mp-mtitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#viewMiper .mp-mtitle b{font-size:1.05rem}
+#viewMiper .mp-count{font-size:.8rem;color:var(--muted)}
+#viewMiper .mp-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+#viewMiper table.mp-table{border-collapse:collapse;width:100%;min-width:920px;font-size:.8rem;background:var(--surface)}
+#viewMiper .mp-table th,#viewMiper .mp-table td{border:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top}
+#viewMiper .mp-table thead th{background:var(--surface2);font-size:.66rem;text-transform:uppercase;letter-spacing:.03em;text-align:center;color:var(--text)}
+#viewMiper .mp-table .mp-num,#viewMiper .mp-table .mp-c{text-align:center;font-weight:700}
+.mp-b{display:inline-block;padding:3px 8px;border-radius:20px;color:#fff;font-size:.68rem;min-width:52px;text-align:center;font-weight:700}
 .mp-bajo{background:#2f9e44}.mp-medio{background:#f0a500}.mp-alto{background:#e8590c}.mp-crit{background:#c92a2a}.mp-none{background:#94a3b8}
-.miper-table .mp-del{color:var(--danger);cursor:pointer;text-align:center;font-weight:700;user-select:none}
-#viewMiper .miper-legend{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
-#viewMiper .mp-blk{font-weight:700;color:var(--text);font-size:.82rem;margin-bottom:8px}
-.mp-mtx{border-collapse:collapse}.mp-mtx td,.mp-mtx th{border:1px solid var(--border);width:38px;height:30px;text-align:center;font-size:.78rem;font-weight:700;padding:0}
-.mp-mtx th,.mp-mtx .ax{background:var(--surface2);color:var(--text)}
-#viewMiper .mp-lvl{display:flex;gap:8px;align-items:center;font-size:.8rem;margin-bottom:6px}
-#viewMiper .mp-lvl .sw{width:20px;height:14px;border-radius:3px;flex:0 0 auto}
-#viewMiper .mp-scales{font-size:.8rem;color:var(--text);line-height:1.7;max-width:380px}
-#viewMiper .miper-note{font-size:.72rem;color:var(--muted);margin-top:12px;line-height:1.55}
-@media print{ #viewMiper .fbar,#viewMiper .miper-note,.miper-table .mp-del,.miper-table .mp-hidecol{display:none} }
+#viewMiper .mp-actions{white-space:nowrap;text-align:center}
+#viewMiper .mp-actions button{border:0;background:var(--surface2);border-radius:7px;padding:5px 8px;margin:0 1px;cursor:pointer;font-size:.85rem}
+#viewMiper .mp-actions button:hover{background:var(--border)}
+#viewMiper .mp-legend{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:.8rem}
+#viewMiper .mp-lg{display:flex;gap:7px;align-items:center}
+#viewMiper .mp-lg .sw,#viewMiper .mp-legend .sw{width:18px;height:13px;border-radius:3px;display:inline-block}
+#viewMiper .mp-jer{flex-basis:100%;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);padding-top:8px;margin-top:2px}
+.mp-printhead{display:none}
+@media print{
+  .mp-printhead{display:block!important;margin-bottom:14px}
+  .mp-printhead .mp-pht{font-size:1.1rem;font-weight:700}
+  .mp-printhead .mp-phs{font-size:.85rem;color:#333;margin-top:3px}
+  #mpHome,#viewMiper .mp-form,#viewMiper .mp-detailtools,#viewMiper .mp-link,#viewMiper .mp-noprint{display:none!important}
+  #viewMiper .mp-grid{display:block!important}
+  #viewMiper .mp-scroll{overflow:visible!important;border:0!important}
+  #viewMiper table.mp-table{min-width:0!important;width:100%!important;font-size:.72rem}
+}
 </style>
 <script>
 (function(){
-  var q=function(s){return document.querySelector(s);}, qa=function(s){return [].slice.call(document.querySelectorAll(s));};
-  var LSK='fuf_miper', tb=q('#miperTb');
-  if(!tb) return;
-  var CAT=[
-    {proc:"Manejo de materiales",cat:"Ergonómico",pel:"Manejo manual de carga / sobreesfuerzo",rie:"Lesión musculoesquelética o lumbar (TMERT)",med:"Medios mecánicos: carro, grúa (ing.); capacitación en técnica de levante (adm.); límite de peso por bulto"},
-    {proc:"Puesto de trabajo",cat:"Ergonómico",pel:"Posturas mantenidas / movimientos repetitivos",rie:"Trastorno musculoesquelético",med:"Rediseño del puesto (ing.); pausas activas y rotación (adm.)"},
-    {proc:"Tránsito interno",cat:"Locativo",pel:"Superficie irregular o resbaladiza",rie:"Caída al mismo nivel",med:"Piso antideslizante, orden y aseo (ing.); señalización piso mojado (adm.); calzado de seguridad (EPP)"},
-    {proc:"Trabajos en altura",cat:"Locativo",pel:"Uso de escaleras / plataformas / andamios",rie:"Caída a distinto nivel",med:"Barandas y superficies estables (ing.); procedimiento de trabajo en altura (adm.); arnés y línea de vida (EPP)"},
-    {proc:"Equipos energizados",cat:"Eléctrico",pel:"Instalaciones y equipos eléctricos",rie:"Contacto eléctrico / electrocución",med:"Protección diferencial y puesta a tierra (ing.); bloqueo y personal autorizado (adm.); inspección de tableros"},
-    {proc:"Uso de sustancias",cat:"Químico",pel:"Productos químicos / de limpieza",rie:"Intoxicación, dermatitis o quemadura química",med:"Sustituir por producto menos peligroso (sust.); ventilación y almacenamiento seguro (ing.); HDS y EPP"},
-    {proc:"Instalaciones",cat:"Incendio / emergencia",pel:"Fuentes de ignición y materiales combustibles",rie:"Incendio / explosión",med:"Controlar cargas combustibles (elim.); extintores, detección, vías de evacuación (ing.); plan de emergencia (adm.)"},
-    {proc:"Uso de equipos",cat:"Mecánico",pel:"Herramientas / máquinas con partes móviles",rie:"Golpe, atrapamiento o corte",med:"Protecciones y resguardos (ing.); procedimiento y mantención (adm.); guantes según tarea (EPP)"},
-    {proc:"Organización del trabajo",cat:"Psicosocial",pel:"Carga, ritmo, relaciones y organización laboral",rie:"Estrés / afectación de la salud mental",med:"Aplicar cuestionario CEAL-SM/SUSESO (adm.); ajustar cargas y turnos, canales de apoyo"},
-    {proc:"Ambiente de trabajo",cat:"Higiénico",pel:"Ruido, iluminación o temperatura inadecuada",rie:"Hipoacusia, fatiga visual, disconfort térmico",med:"Control en la fuente / aislamiento (ing.); mediciones higiénicas (adm.); protección auditiva (EPP)"},
-    {proc:"Higiene y saneamiento",cat:"Biológico",pel:"Contacto con agentes biológicos / residuos",rie:"Enfermedad infecciosa / contaminación",med:"Aseo, desinfección y manejo de residuos (ing.); higiene de manos y protocolo (adm.); guantes y mascarilla (EPP)"}
-  ];
+  var q=function(s){return document.querySelector(s);};
+  var LSK='fuf_miper';
+  var DB={companies:[]}, curId=null, editIdx=-1;
+
   function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  function opts(v){var s='<option value="">–</option>';for(var i=1;i<=4;i++)s+='<option '+(v==i?'selected':'')+'>'+i+'</option>';return s;}
-  function rowHTML(d){d=d||{};return ''+
-    '<td class="mp-num"></td>'+
-    '<td><div class="mp-proc" contenteditable>'+esc(d.proc)+'</div><div class="mp-cat">'+esc(d.cat)+'</div></td>'+
-    '<td contenteditable>'+esc(d.pel)+'</td>'+
-    '<td contenteditable>'+esc(d.rie)+'</td>'+
-    '<td style="text-align:center"><select class="mp-p">'+opts(d.p)+'</select></td>'+
-    '<td style="text-align:center"><select class="mp-c">'+opts(d.c)+'</select></td>'+
-    '<td class="mp-vr">–</td>'+
-    '<td class="mp-nivel"><span class="mp-b mp-none">—</span></td>'+
-    '<td contenteditable>'+esc(d.med)+'</td>'+
-    '<td contenteditable>'+esc(d.resp)+'</td>'+
-    '<td contenteditable>'+esc(d.plazo)+'</td>'+
-    '<td class="mp-del" title="Eliminar fila">✕</td>';}
-  function renumber(){qa('#miperTb tr').forEach(function(tr,i){tr.firstElementChild.textContent=i+1;});}
-  function calc(tr){var p=+tr.querySelector('.mp-p').value,c=+tr.querySelector('.mp-c').value,vr=tr.querySelector('.mp-vr'),nv=tr.querySelector('.mp-nivel');
-    if(!p||!c){vr.textContent='–';nv.innerHTML='<span class="mp-b mp-none">—</span>';return;}
-    var v=p*c;vr.textContent=v;var cls,txt;
-    if(v<=3){cls='mp-bajo';txt='Bajo';}else if(v<=6){cls='mp-medio';txt='Medio';}else if(v<=9){cls='mp-alto';txt='Alto';}else{cls='mp-crit';txt='Crítico';}
-    nv.innerHTML='<span class="mp-b '+cls+'">'+txt+'</span>';}
-  function addRow(d){var tr=document.createElement('tr');tr.innerHTML=rowHTML(d);tb.appendChild(tr);calc(tr);}
-  function build(rows){tb.innerHTML='';(rows||[]).forEach(addRow);renumber();}
-  function collect(){
-    var rows=qa('#miperTb tr').map(function(tr){var td=tr.children;return{
-      proc:(td[1].querySelector('.mp-proc')||{}).innerText||'',cat:(td[1].querySelector('.mp-cat')||{}).innerText||'',
-      pel:td[2].innerText,rie:td[3].innerText,p:tr.querySelector('.mp-p').value,c:tr.querySelector('.mp-c').value,
-      med:td[8].innerText,resp:td[9].innerText,plazo:td[10].innerText};});
-    var meta={};['empresa','area','fecha','elaboro'].forEach(function(k){var el=q('#mp_'+k);if(el)meta[k]=el.value;});
-    return{rows:rows,meta:meta};}
-  var cloudT;
+  function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+  function nivelFor(v){ if(v<=3)return['Bajo','mp-bajo']; if(v<=6)return['Medio','mp-medio']; if(v<=9)return['Alto','mp-alto']; return['Crítico','mp-crit']; }
+  function fdate(ts){ if(!ts)return'—'; try{return new Date(ts).toLocaleDateString('es-CL');}catch(e){return'—';} }
+  function findCompany(id){ for(var i=0;i<DB.companies.length;i++) if(DB.companies[i].id===id) return DB.companies[i]; return null; }
+  function normalize(d){ if(d&&Array.isArray(d.companies)) return {companies:d.companies.map(function(c){return {id:c.id||uid(),nombre:c.nombre||'(sin nombre)',riesgos:Array.isArray(c.riesgos)?c.riesgos:[],updatedAt:c.updatedAt||Date.now()};})}; return {companies:[]}; }
+
   function persist(){
-    var data=collect();
-    try{localStorage.setItem(LSK,JSON.stringify(data));}catch(e){}
-    if(typeof miperCloudSave==='function'){ clearTimeout(cloudT); cloudT=setTimeout(function(){ miperCloudSave(data); },500); }
+    try{localStorage.setItem(LSK,JSON.stringify(DB));}catch(e){}
+    if(typeof miperCloudSave==='function'){ clearTimeout(persist._t); persist._t=setTimeout(function(){miperCloudSave(DB);},500); }
   }
-  // Recibe datos del usuario desde Firebase (llamado por el onSnapshot de la app)
+
+  /* ---- Pantalla 1: empresas ---- */
+  function renderHome(){
+    var list=q('#mpCompanyList'); list.innerHTML='';
+    q('#mpEmpty').style.display=DB.companies.length?'none':'block';
+    DB.companies.slice().sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);}).forEach(function(c){
+      var card=document.createElement('div'); card.className='mp-card'; card.setAttribute('data-id',c.id);
+      card.innerHTML='<button class="mp-cardx" data-del="'+c.id+'" title="Borrar empresa">✕</button>'+
+        '<div class="mp-cardname">'+esc(c.nombre)+'</div>'+
+        '<div class="mp-cardmeta">'+c.riesgos.length+' riesgo(s) · '+fdate(c.updatedAt)+'</div>';
+      list.appendChild(card);
+    });
+  }
+  function showHome(){ curId=null; q('#mpDetail').style.display='none'; q('#mpHome').style.display='block'; renderHome(); }
+  function showDetail(id){
+    var c=findCompany(id); if(!c) return showHome();
+    curId=id; editIdx=-1; resetForm();
+    q('#mpHome').style.display='none'; q('#mpDetail').style.display='block';
+    q('#mpDetailName').textContent=c.nombre; q('#mpPrintCompany').textContent=c.nombre;
+    renderMatrix();
+  }
+  function openByName(name){
+    name=(name||'').trim(); if(!name) return;
+    var c=null;
+    for(var i=0;i<DB.companies.length;i++){ if(DB.companies[i].nombre.toLowerCase()===name.toLowerCase()){c=DB.companies[i];break;} }
+    if(!c){ c={id:uid(),nombre:name,riesgos:[],updatedAt:Date.now()}; DB.companies.push(c); persist(); }
+    q('#mpCompanyInput').value=''; showDetail(c.id);
+  }
+
+  /* ---- Pantalla 2: matriz ---- */
+  function renderMatrix(){
+    var c=findCompany(curId); if(!c) return;
+    var tb=q('#mpTbody'); tb.innerHTML='';
+    q('#mpCount').textContent=c.riesgos.length+' riesgo(s)';
+    q('#mpDetailMeta').textContent=c.riesgos.length+' riesgo(s) · última edición '+fdate(c.updatedAt);
+    q('#mpNoRisks').style.display=c.riesgos.length?'none':'block';
+    c.riesgos.forEach(function(r,i){
+      var vr=(+r.p)*(+r.c), nv=nivelFor(vr), tr=document.createElement('tr');
+      tr.innerHTML='<td class="mp-num">'+(i+1)+'</td>'+
+        '<td>'+esc(r.proc)+'</td><td>'+esc(r.puesto)+'</td><td>'+esc(r.pel)+'</td><td>'+esc(r.rie)+'</td>'+
+        '<td class="mp-c">'+esc(r.p)+'</td><td class="mp-c">'+esc(r.c)+'</td><td class="mp-c">'+vr+'</td>'+
+        '<td class="mp-c"><span class="mp-b '+nv[1]+'">'+nv[0]+'</span></td>'+
+        '<td>'+esc(r.med)+'</td><td>'+esc(r.resp)+'</td>'+
+        '<td class="mp-noprint mp-actions"><button data-edit="'+i+'" title="Editar">✎</button><button data-delr="'+i+'" title="Borrar">🗑</button></td>';
+      tb.appendChild(tr);
+    });
+  }
+
+  /* ---- Formulario ---- */
+  function readForm(){ return {proc:q('#f_proc').value.trim(),puesto:q('#f_puesto').value.trim(),pel:q('#f_pel').value.trim(),rie:q('#f_rie').value.trim(),p:q('#f_p').value,c:q('#f_c').value,med:q('#f_med').value.trim(),resp:q('#f_resp').value.trim()}; }
+  function fillForm(r){ q('#f_proc').value=r.proc||''; q('#f_puesto').value=r.puesto||''; q('#f_pel').value=r.pel||''; q('#f_rie').value=r.rie||''; q('#f_p').value=r.p||''; q('#f_c').value=r.c||''; q('#f_med').value=r.med||''; q('#f_resp').value=r.resp||''; updatePrev(); }
+  function resetForm(){ q('#mpForm').reset(); editIdx=-1; q('#mpFormTitle').textContent='➕ Agregar riesgo'; q('#mpSaveBtn').textContent='Guardar riesgo'; q('#mpCancelBtn').style.display='none'; updatePrev(); }
+  function updatePrev(){ var p=+q('#f_p').value,c=+q('#f_c').value,prev=q('#mpPrev');
+    if(!p||!c){ prev.innerHTML='<span class="mp-b mp-none">—</span> <span class="mp-prevtxt">Nivel de riesgo aparecerá aquí</span>'; return; }
+    var vr=p*c,nv=nivelFor(vr); prev.innerHTML='<span class="mp-b '+nv[1]+'">'+nv[0]+'</span> <span class="mp-prevtxt">VR = '+p+' × '+c+' = '+vr+'</span>'; }
+  function submitForm(e){
+    e.preventDefault();
+    var c=findCompany(curId); if(!c) return;
+    var r=readForm();
+    if(!r.proc||!r.pel||!r.rie||!r.p||!r.c){ alert('Completa al menos: Proceso, Peligro, Riesgo, Probabilidad y Consecuencia.'); return; }
+    if(editIdx>=0) c.riesgos[editIdx]=r; else c.riesgos.push(r);
+    c.updatedAt=Date.now(); persist(); resetForm(); renderMatrix();
+  }
+
+  /* ---- Eventos ---- */
+  q('#mpOpenBtn').addEventListener('click',function(){ openByName(q('#mpCompanyInput').value); });
+  q('#mpCompanyInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); openByName(this.value); } });
+  q('#mpCompanyList').addEventListener('click',function(e){
+    var del=e.target.closest('.mp-cardx');
+    if(del){ var c=findCompany(del.getAttribute('data-del')); if(c&&confirm('¿Borrar la empresa "'+c.nombre+'" y todos sus riesgos? No se puede deshacer.')){ DB.companies=DB.companies.filter(function(x){return x.id!==c.id;}); persist(); renderHome(); } return; }
+    var card=e.target.closest('.mp-card'); if(card) showDetail(card.getAttribute('data-id'));
+  });
+  q('#mpBackBtn').addEventListener('click',showHome);
+  q('#mpDelCompanyBtn').addEventListener('click',function(){ var c=findCompany(curId); if(c&&confirm('¿Borrar la empresa "'+c.nombre+'" y todos sus riesgos? No se puede deshacer.')){ DB.companies=DB.companies.filter(function(x){return x.id!==curId;}); persist(); showHome(); } });
+  q('#mpPrintBtn').addEventListener('click',function(){ q('#mpPrintDate').textContent=fdate(Date.now()); window.print(); });
+  q('#mpForm').addEventListener('submit',submitForm);
+  q('#mpCancelBtn').addEventListener('click',resetForm);
+  q('#f_p').addEventListener('change',updatePrev);
+  q('#f_c').addEventListener('change',updatePrev);
+  q('#mpTbody').addEventListener('click',function(e){
+    var c=findCompany(curId); if(!c) return;
+    var ed=e.target.closest('[data-edit]'), dl=e.target.closest('[data-delr]');
+    if(ed){ editIdx=+ed.getAttribute('data-edit'); fillForm(c.riesgos[editIdx]); q('#mpFormTitle').textContent='✎ Editar riesgo'; q('#mpSaveBtn').textContent='Guardar cambios'; q('#mpCancelBtn').style.display='inline-block'; q('#mpForm').scrollIntoView({behavior:'smooth',block:'center'}); }
+    else if(dl){ var i=+dl.getAttribute('data-delr'); if(confirm('¿Borrar este riesgo?')){ c.riesgos.splice(i,1); c.updatedAt=Date.now(); persist(); if(editIdx===i) resetForm(); renderMatrix(); } }
+  });
+
+  /* ---- Sincronización con Firebase (llamado por onSnapshot de la app) ---- */
   window.miperApply=function(data){
     if(!data) return;
-    if(document.activeElement && q('#viewMiper') && q('#viewMiper').contains(document.activeElement)) return; // no interrumpir edición
-    if(data.rows && data.rows.length){ build(data.rows); }
-    var meta=data.meta||{}; Object.keys(meta).forEach(function(k){var el=q('#mp_'+k);if(el)el.value=meta[k];});
-    try{localStorage.setItem(LSK,JSON.stringify(data));}catch(e){}
+    var editing=document.activeElement && q('#mpForm') && q('#mpForm').contains(document.activeElement);
+    DB=normalize(data);
+    try{localStorage.setItem(LSK,JSON.stringify(DB));}catch(e){}
+    if(editing) return;
+    if(curId && findCompany(curId)) renderMatrix();
+    else if(q('#mpHome').style.display!=='none') renderHome();
   };
-  function init(){
-    var saved=null;try{saved=JSON.parse(localStorage.getItem(LSK));}catch(e){}
-    if(saved&&saved.rows&&saved.rows.length){build(saved.rows);Object.keys(saved.meta||{}).forEach(function(k){var el=q('#mp_'+k);if(el)el.value=saved.meta[k];});}
-    else{build(CAT);}
-  }
-  q('#miperAdd').addEventListener('click',function(){addRow({});renumber();persist();});
-  q('#miperPrint').addEventListener('click',function(){window.print();});
-  q('#miperReset').addEventListener('click',function(){if(confirm('¿Restaurar el catálogo original? Se perderán los cambios de esta MIPER.')){localStorage.removeItem(LSK);build(CAT);}});
-  tb.addEventListener('change',function(e){if(e.target.classList.contains('mp-p')||e.target.classList.contains('mp-c')){calc(e.target.closest('tr'));persist();}});
-  tb.addEventListener('click',function(e){if(e.target.classList.contains('mp-del')){e.target.closest('tr').remove();renumber();persist();}});
-  tb.addEventListener('input',persist);
-  qa('#viewMiper .hdrfields input').forEach(function(i){i.addEventListener('input',persist);});
-  init();
+
+  /* ---- Inicio ---- */
+  (function init(){ var s=null; try{s=JSON.parse(localStorage.getItem(LSK));}catch(e){} DB=normalize(s); showHome(); })();
 })();
 </script>
 </body>
