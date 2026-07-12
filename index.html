@@ -370,6 +370,7 @@ body.gated{overflow:hidden}
   <button data-view="Fiscalizacion" class="active">Fiscalización</button>
   <button data-view="Biblioteca">Biblioteca Normativa</button>
   <button data-view="IA">Asistente IA</button>
+  <button data-view="Miper">MIPER</button>
   <button data-view="Admin" id="tabAdmin" style="display:none">Panel Admin</button>
 </nav>
 
@@ -444,6 +445,68 @@ body.gated{overflow:hidden}
     </div>
   </section>
 
+  <!-- MIPER -->
+  <section class="view" id="viewMiper">
+    <div class="fbar">
+      <button id="miperAdd">＋ Agregar peligro</button>
+      <button id="miperPrint">🖨 Imprimir / PDF</button>
+      <button id="miperReset" class="danger">↺ Restaurar catálogo</button>
+    </div>
+    <div class="hdrfields">
+      <label>Empresa / Unidad<input id="mp_empresa" placeholder="Nombre de la entidad"></label>
+      <label>Área / Proceso evaluado<input id="mp_area" placeholder="Área o faena"></label>
+      <label>Fecha<input id="mp_fecha" type="date"></label>
+      <label>Elaboró<input id="mp_elaboro" placeholder="Nombre"></label>
+    </div>
+    <div class="miper-scroll">
+      <table class="miper-table">
+        <thead>
+          <tr>
+            <th style="width:30px">N°</th>
+            <th style="width:150px">Proceso / Actividad</th>
+            <th style="width:165px">Peligro</th>
+            <th style="width:175px">Riesgo (evento / consecuencia)</th>
+            <th style="width:56px">P</th>
+            <th style="width:56px">C</th>
+            <th style="width:46px">VR</th>
+            <th style="width:78px">Nivel</th>
+            <th>Medidas de control (jerarquía DS 44)</th>
+            <th style="width:110px">Responsable</th>
+            <th style="width:86px">Plazo</th>
+            <th style="width:30px" class="mp-hidecol"></th>
+          </tr>
+        </thead>
+        <tbody id="miperTb"></tbody>
+      </table>
+    </div>
+    <div class="miper-legend">
+      <div>
+        <div class="mp-blk">Matriz de evaluación (P × C)</div>
+        <table class="mp-mtx">
+          <tr><th></th><th>C1</th><th>C2</th><th>C3</th><th>C4</th></tr>
+          <tr><td class="ax">P4</td><td style="background:#f0a500">4</td><td style="background:#e8590c;color:#fff">8</td><td style="background:#c92a2a;color:#fff">12</td><td style="background:#c92a2a;color:#fff">16</td></tr>
+          <tr><td class="ax">P3</td><td style="background:#2f9e44;color:#fff">3</td><td style="background:#f0a500">6</td><td style="background:#e8590c;color:#fff">9</td><td style="background:#c92a2a;color:#fff">12</td></tr>
+          <tr><td class="ax">P2</td><td style="background:#2f9e44;color:#fff">2</td><td style="background:#f0a500">4</td><td style="background:#e8590c;color:#fff">6</td><td style="background:#e8590c;color:#fff">8</td></tr>
+          <tr><td class="ax">P1</td><td style="background:#2f9e44;color:#fff">1</td><td style="background:#2f9e44;color:#fff">2</td><td style="background:#2f9e44;color:#fff">3</td><td style="background:#f0a500">4</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="mp-blk">Nivel de riesgo</div>
+        <div class="mp-lvl"><span class="sw" style="background:#2f9e44"></span> <b>Bajo (1–3)</b> — mantener y monitorear</div>
+        <div class="mp-lvl"><span class="sw" style="background:#f0a500"></span> <b>Medio (4–6)</b> — medidas en plazo definido</div>
+        <div class="mp-lvl"><span class="sw" style="background:#e8590c"></span> <b>Alto (8–9)</b> — acción prioritaria e inmediata</div>
+        <div class="mp-lvl"><span class="sw" style="background:#c92a2a"></span> <b>Crítico (12–16)</b> — detener tarea hasta controlar</div>
+      </div>
+      <div>
+        <div class="mp-blk">Escalas</div>
+        <div class="mp-scales"><b>P — Probabilidad:</b> 1 muy baja · 2 baja · 3 media · 4 alta<br>
+        <b>C — Consecuencia:</b> 1 leve · 2 moderada · 3 grave · 4 fatal<br>
+        <b>Jerarquía de control:</b> 1° Eliminación · 2° Sustitución · 3° Ingeniería · 4° Administrativos · 5° EPP</div>
+      </div>
+    </div>
+    <p class="miper-note">Modelo genérico conforme al DS N° 44/2024, aplicable a cualquier rubro. La Sección de catálogo trae peligros comunes: ajústalos a tu lugar de trabajo. La evaluación de P y C es responsabilidad de quien la elabora junto al Comité Paritario / experto en prevención. Los datos de esta MIPER se guardan en este dispositivo.</p>
+  </section>
+
   <!-- PANEL ADMIN -->
   <section class="view" id="viewAdmin">
     <div class="admin-head">
@@ -493,10 +556,12 @@ const ADMIN_EMAIL='marcoaraya1973@gmail.com';
 let fbRef=null, fbReady=false, fbEcho=false, authOn=false, isAdmin=false;
 function fbConfigured(){ return typeof firebase!=='undefined' && String(firebaseConfig.apiKey).indexOf('TU_')!==0; }
 function fbSave(){ if(!fbReady||!fbRef) return; fbEcho=true; fbRef.set({answers:state.answers,header:state.header,updatedAt:Date.now()},{merge:true}).catch(e=>{fbEcho=false;console.warn('Firestore save:',e.message);}); }
+function miperCloudSave(data){ if(!fbReady||!fbRef) return; fbEcho=true; fbRef.set({miper:data,updatedAt:Date.now()},{merge:true}).catch(e=>{fbEcho=false;console.warn('MIPER save:',e.message);}); }
 function bindUserData(uid){
   fbRef=firebase.firestore().collection('fuf_ds44').doc(uid); fbReady=true;
   fbRef.onSnapshot(snap=>{ const v=snap.data();
-    if(v && !fbEcho){ state.answers=v.answers||{}; state.header=Object.assign(state.header,v.header||{}); localStorage.setItem(LS,JSON.stringify(state)); hydrateUI(); }
+    if(v && !fbEcho){ state.answers=v.answers||{}; state.header=Object.assign(state.header,v.header||{}); localStorage.setItem(LS,JSON.stringify(state)); hydrateUI();
+      if(v.miper && window.miperApply) window.miperApply(v.miper); }
     fbEcho=false;
   }, e=>console.warn('Firestore:',e.message));
 }
@@ -1102,6 +1167,109 @@ function wireTools(){
 
 /* ---------- init ---------- */
 initApp();
+</script>
+
+<!-- ===== MIPER (módulo DS 44/2024) ===== -->
+<style>
+#viewMiper .miper-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+table.miper-table{border-collapse:collapse;width:100%;min-width:1080px;font-size:.82rem}
+.miper-table th,.miper-table td{border:1px solid var(--border);padding:7px 8px;vertical-align:top;text-align:left}
+.miper-table thead th{background:var(--surface2);color:var(--text);font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;text-align:center;position:sticky;top:0}
+.miper-table td[contenteditable]:focus,.miper-table .mp-proc:focus{outline:2px solid var(--brand);outline-offset:-2px;background:var(--surface2)}
+.miper-table .mp-num{text-align:center;color:var(--muted);font-weight:600}
+.miper-table .mp-proc{font-weight:600}
+.miper-table .mp-cat{font-size:.7rem;color:var(--muted);font-style:italic;margin-top:2px}
+.miper-table select{border:1px solid var(--border);border-radius:7px;padding:4px;background:var(--bg);color:var(--text);width:48px;text-align:center}
+.miper-table .mp-vr,.miper-table .mp-nivel{text-align:center;font-weight:700}
+.mp-b{display:inline-block;padding:3px 8px;border-radius:20px;color:#fff;font-size:.68rem;min-width:52px;text-align:center}
+.mp-bajo{background:#2f9e44}.mp-medio{background:#f0a500}.mp-alto{background:#e8590c}.mp-crit{background:#c92a2a}.mp-none{background:#94a3b8}
+.miper-table .mp-del{color:var(--danger);cursor:pointer;text-align:center;font-weight:700;user-select:none}
+#viewMiper .miper-legend{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+#viewMiper .mp-blk{font-weight:700;color:var(--text);font-size:.82rem;margin-bottom:8px}
+.mp-mtx{border-collapse:collapse}.mp-mtx td,.mp-mtx th{border:1px solid var(--border);width:38px;height:30px;text-align:center;font-size:.78rem;font-weight:700;padding:0}
+.mp-mtx th,.mp-mtx .ax{background:var(--surface2);color:var(--text)}
+#viewMiper .mp-lvl{display:flex;gap:8px;align-items:center;font-size:.8rem;margin-bottom:6px}
+#viewMiper .mp-lvl .sw{width:20px;height:14px;border-radius:3px;flex:0 0 auto}
+#viewMiper .mp-scales{font-size:.8rem;color:var(--text);line-height:1.7;max-width:380px}
+#viewMiper .miper-note{font-size:.72rem;color:var(--muted);margin-top:12px;line-height:1.55}
+@media print{ #viewMiper .fbar,#viewMiper .miper-note,.miper-table .mp-del,.miper-table .mp-hidecol{display:none} }
+</style>
+<script>
+(function(){
+  var q=function(s){return document.querySelector(s);}, qa=function(s){return [].slice.call(document.querySelectorAll(s));};
+  var LSK='fuf_miper', tb=q('#miperTb');
+  if(!tb) return;
+  var CAT=[
+    {proc:"Manejo de materiales",cat:"Ergonómico",pel:"Manejo manual de carga / sobreesfuerzo",rie:"Lesión musculoesquelética o lumbar (TMERT)",med:"Medios mecánicos: carro, grúa (ing.); capacitación en técnica de levante (adm.); límite de peso por bulto"},
+    {proc:"Puesto de trabajo",cat:"Ergonómico",pel:"Posturas mantenidas / movimientos repetitivos",rie:"Trastorno musculoesquelético",med:"Rediseño del puesto (ing.); pausas activas y rotación (adm.)"},
+    {proc:"Tránsito interno",cat:"Locativo",pel:"Superficie irregular o resbaladiza",rie:"Caída al mismo nivel",med:"Piso antideslizante, orden y aseo (ing.); señalización piso mojado (adm.); calzado de seguridad (EPP)"},
+    {proc:"Trabajos en altura",cat:"Locativo",pel:"Uso de escaleras / plataformas / andamios",rie:"Caída a distinto nivel",med:"Barandas y superficies estables (ing.); procedimiento de trabajo en altura (adm.); arnés y línea de vida (EPP)"},
+    {proc:"Equipos energizados",cat:"Eléctrico",pel:"Instalaciones y equipos eléctricos",rie:"Contacto eléctrico / electrocución",med:"Protección diferencial y puesta a tierra (ing.); bloqueo y personal autorizado (adm.); inspección de tableros"},
+    {proc:"Uso de sustancias",cat:"Químico",pel:"Productos químicos / de limpieza",rie:"Intoxicación, dermatitis o quemadura química",med:"Sustituir por producto menos peligroso (sust.); ventilación y almacenamiento seguro (ing.); HDS y EPP"},
+    {proc:"Instalaciones",cat:"Incendio / emergencia",pel:"Fuentes de ignición y materiales combustibles",rie:"Incendio / explosión",med:"Controlar cargas combustibles (elim.); extintores, detección, vías de evacuación (ing.); plan de emergencia (adm.)"},
+    {proc:"Uso de equipos",cat:"Mecánico",pel:"Herramientas / máquinas con partes móviles",rie:"Golpe, atrapamiento o corte",med:"Protecciones y resguardos (ing.); procedimiento y mantención (adm.); guantes según tarea (EPP)"},
+    {proc:"Organización del trabajo",cat:"Psicosocial",pel:"Carga, ritmo, relaciones y organización laboral",rie:"Estrés / afectación de la salud mental",med:"Aplicar cuestionario CEAL-SM/SUSESO (adm.); ajustar cargas y turnos, canales de apoyo"},
+    {proc:"Ambiente de trabajo",cat:"Higiénico",pel:"Ruido, iluminación o temperatura inadecuada",rie:"Hipoacusia, fatiga visual, disconfort térmico",med:"Control en la fuente / aislamiento (ing.); mediciones higiénicas (adm.); protección auditiva (EPP)"},
+    {proc:"Higiene y saneamiento",cat:"Biológico",pel:"Contacto con agentes biológicos / residuos",rie:"Enfermedad infecciosa / contaminación",med:"Aseo, desinfección y manejo de residuos (ing.); higiene de manos y protocolo (adm.); guantes y mascarilla (EPP)"}
+  ];
+  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function opts(v){var s='<option value="">–</option>';for(var i=1;i<=4;i++)s+='<option '+(v==i?'selected':'')+'>'+i+'</option>';return s;}
+  function rowHTML(d){d=d||{};return ''+
+    '<td class="mp-num"></td>'+
+    '<td><div class="mp-proc" contenteditable>'+esc(d.proc)+'</div><div class="mp-cat">'+esc(d.cat)+'</div></td>'+
+    '<td contenteditable>'+esc(d.pel)+'</td>'+
+    '<td contenteditable>'+esc(d.rie)+'</td>'+
+    '<td style="text-align:center"><select class="mp-p">'+opts(d.p)+'</select></td>'+
+    '<td style="text-align:center"><select class="mp-c">'+opts(d.c)+'</select></td>'+
+    '<td class="mp-vr">–</td>'+
+    '<td class="mp-nivel"><span class="mp-b mp-none">—</span></td>'+
+    '<td contenteditable>'+esc(d.med)+'</td>'+
+    '<td contenteditable>'+esc(d.resp)+'</td>'+
+    '<td contenteditable>'+esc(d.plazo)+'</td>'+
+    '<td class="mp-del" title="Eliminar fila">✕</td>';}
+  function renumber(){qa('#miperTb tr').forEach(function(tr,i){tr.firstElementChild.textContent=i+1;});}
+  function calc(tr){var p=+tr.querySelector('.mp-p').value,c=+tr.querySelector('.mp-c').value,vr=tr.querySelector('.mp-vr'),nv=tr.querySelector('.mp-nivel');
+    if(!p||!c){vr.textContent='–';nv.innerHTML='<span class="mp-b mp-none">—</span>';return;}
+    var v=p*c;vr.textContent=v;var cls,txt;
+    if(v<=3){cls='mp-bajo';txt='Bajo';}else if(v<=6){cls='mp-medio';txt='Medio';}else if(v<=9){cls='mp-alto';txt='Alto';}else{cls='mp-crit';txt='Crítico';}
+    nv.innerHTML='<span class="mp-b '+cls+'">'+txt+'</span>';}
+  function addRow(d){var tr=document.createElement('tr');tr.innerHTML=rowHTML(d);tb.appendChild(tr);calc(tr);}
+  function build(rows){tb.innerHTML='';(rows||[]).forEach(addRow);renumber();}
+  function collect(){
+    var rows=qa('#miperTb tr').map(function(tr){var td=tr.children;return{
+      proc:(td[1].querySelector('.mp-proc')||{}).innerText||'',cat:(td[1].querySelector('.mp-cat')||{}).innerText||'',
+      pel:td[2].innerText,rie:td[3].innerText,p:tr.querySelector('.mp-p').value,c:tr.querySelector('.mp-c').value,
+      med:td[8].innerText,resp:td[9].innerText,plazo:td[10].innerText};});
+    var meta={};['empresa','area','fecha','elaboro'].forEach(function(k){var el=q('#mp_'+k);if(el)meta[k]=el.value;});
+    return{rows:rows,meta:meta};}
+  var cloudT;
+  function persist(){
+    var data=collect();
+    try{localStorage.setItem(LSK,JSON.stringify(data));}catch(e){}
+    if(typeof miperCloudSave==='function'){ clearTimeout(cloudT); cloudT=setTimeout(function(){ miperCloudSave(data); },500); }
+  }
+  // Recibe datos del usuario desde Firebase (llamado por el onSnapshot de la app)
+  window.miperApply=function(data){
+    if(!data) return;
+    if(document.activeElement && q('#viewMiper') && q('#viewMiper').contains(document.activeElement)) return; // no interrumpir edición
+    if(data.rows && data.rows.length){ build(data.rows); }
+    var meta=data.meta||{}; Object.keys(meta).forEach(function(k){var el=q('#mp_'+k);if(el)el.value=meta[k];});
+    try{localStorage.setItem(LSK,JSON.stringify(data));}catch(e){}
+  };
+  function init(){
+    var saved=null;try{saved=JSON.parse(localStorage.getItem(LSK));}catch(e){}
+    if(saved&&saved.rows&&saved.rows.length){build(saved.rows);Object.keys(saved.meta||{}).forEach(function(k){var el=q('#mp_'+k);if(el)el.value=saved.meta[k];});}
+    else{build(CAT);}
+  }
+  q('#miperAdd').addEventListener('click',function(){addRow({});renumber();persist();});
+  q('#miperPrint').addEventListener('click',function(){window.print();});
+  q('#miperReset').addEventListener('click',function(){if(confirm('¿Restaurar el catálogo original? Se perderán los cambios de esta MIPER.')){localStorage.removeItem(LSK);build(CAT);}});
+  tb.addEventListener('change',function(e){if(e.target.classList.contains('mp-p')||e.target.classList.contains('mp-c')){calc(e.target.closest('tr'));persist();}});
+  tb.addEventListener('click',function(e){if(e.target.classList.contains('mp-del')){e.target.closest('tr').remove();renumber();persist();}});
+  tb.addEventListener('input',persist);
+  qa('#viewMiper .hdrfields input').forEach(function(i){i.addEventListener('input',persist);});
+  init();
+})();
 </script>
 </body>
 </html>
