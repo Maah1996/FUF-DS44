@@ -998,6 +998,12 @@ function informeContent(h,answers){
       ${plan?`<div class="gp"><b>Plan definido:</b> ${plan}</div>`:'<div class="gp gpn">Plan de acción pendiente de definir</div>'}
     </div>`;
   }).join(''):'<p style="color:#16a34a;font-weight:600">✔ No se registraron incumplimientos.</p>';
+  const naItems=FUF_DATA.filter(q=>(answers[q.id]||{}).estado==='no_aplica');
+  const naHtml=naItems.map(q=>{
+    const p=(answers[q.id]||{}).plan||{};
+    const motivo=p.observaciones?(' — <i>'+esc(p.observaciones)+'</i>'):'';
+    return `<div class="na"><b>#${q.id}</b> ${esc(q.pregunta)} <span class="naa">(${esc(q.articulo)})</span>${motivo}</div>`;
+  }).join('');
   return `<style>
   .inf{background:#fff;color:#111;padding:16px;font-size:.9rem;line-height:1.5}
   .inf h2{font-size:1.2rem;margin:0}
@@ -1021,6 +1027,9 @@ function informeContent(h,answers){
   .inf .gap .gs{font-size:.8rem}
   .inf .gap .gp{font-size:.8rem;margin-top:3px}
   .inf .gap .gpn{color:#b45309;font-style:italic}
+  .inf .nanote{font-size:.76rem;color:#555;margin:2px 0 6px}
+  .inf .na{border:1px solid #e5e5e5;border-left:4px solid #9ca3af;border-radius:6px;padding:6px 10px;margin:5px 0;font-size:.82rem}
+  .inf .na .naa{color:#666;font-style:italic;font-size:.76rem}
   </style>
   <div class="inf">
     <h2>Informe de Auditoría Preventiva</h2>
@@ -1043,7 +1052,9 @@ function informeContent(h,answers){
     <table><thead><tr><th>Módulo</th><th class="ce">Cumple/Aplicables</th><th class="ce">%</th></tr></thead><tbody>${modRows}</tbody></table>
     <div class="secn">Hallazgos (incumplimientos) y plan de acción — ${gaps.length}</div>
     ${gapHtml}
-    <div style="margin-top:14px;font-size:.72rem;color:#777">% de cumplimiento = Cumple / (Total − N/A). Informe orientativo; validar con asesor SST.</div>
+    ${naItems.length?`<div class="secn">No aplican — excluidos del cálculo (${naItems.length})</div>
+    <div class="nanote">Estos ítems no le aplican a la entidad (ej.: Comité Paritario por tener menos de 25 trabajadores). No cuentan en el cálculo del cumplimiento. Puedes anotar el motivo en las Observaciones de cada pregunta.</div>${naHtml}`:''}
+    <div style="margin-top:14px;font-size:.72rem;color:#777">% de cumplimiento = Cumple / (Total − No Aplica). Los ítems "No Aplica" se excluyen y no afectan negativamente el resultado. Informe orientativo; validar con asesor SST.</div>
   </div>`;
 }
 function openInforme(){
