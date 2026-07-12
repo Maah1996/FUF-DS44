@@ -1273,9 +1273,12 @@ initApp();
   function nivelFor(v){ if(v<=3)return['Bajo','mp-bajo']; if(v<=6)return['Medio','mp-medio']; if(v<=9)return['Alto','mp-alto']; return['Crítico','mp-crit']; }
   function fdate(ts){ if(!ts)return'—'; try{return new Date(ts).toLocaleDateString('es-CL');}catch(e){return'—';} }
   function findCompany(id){ for(var i=0;i<DB.companies.length;i++) if(DB.companies[i].id===id) return DB.companies[i]; return null; }
-  function normalize(d){ if(d&&Array.isArray(d.companies)) return {companies:d.companies.map(function(c){return {id:c.id||uid(),nombre:c.nombre||'(sin nombre)',riesgos:Array.isArray(c.riesgos)?c.riesgos:[],updatedAt:c.updatedAt||Date.now()};})}; return {companies:[]}; }
+  function normalize(d){ if(d&&Array.isArray(d.companies)) return {updatedAt:d.updatedAt||0,companies:d.companies.map(function(c){return {id:c.id||uid(),nombre:c.nombre||'(sin nombre)',riesgos:Array.isArray(c.riesgos)?c.riesgos:[],updatedAt:c.updatedAt||Date.now()};})}; return {updatedAt:0,companies:[]}; }
+  // Marca de tiempo más reciente de un set de datos (doc + empresas), para decidir qué versión es más nueva.
+  function stamp(d){ var m=(d&&d.updatedAt)||0; if(d&&Array.isArray(d.companies)) d.companies.forEach(function(c){ if((c.updatedAt||0)>m) m=c.updatedAt; }); return m; }
 
   function persist(){
+    DB.updatedAt=Date.now();
     try{localStorage.setItem(LSK,JSON.stringify(DB));}catch(e){}
     if(typeof miperCloudSave==='function'){ clearTimeout(persist._t); persist._t=setTimeout(function(){miperCloudSave(DB);},500); }
   }
@@ -1368,6 +1371,9 @@ initApp();
   /* ---- Sincronización con Firebase (llamado por onSnapshot de la app) ---- */
   window.miperApply=function(data){
     if(!data) return;
+    // No pisar cambios locales más nuevos que aún se están sincronizando a la nube
+    // (evita perder una empresa/riesgo recién creado por un onSnapshot tardío).
+    if(stamp(data) < stamp(DB)) return;
     var editing=document.activeElement && q('#mpForm') && q('#mpForm').contains(document.activeElement);
     DB=normalize(data);
     try{localStorage.setItem(LSK,JSON.stringify(DB));}catch(e){}
