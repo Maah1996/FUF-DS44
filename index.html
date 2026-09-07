@@ -486,41 +486,65 @@ body.gated{overflow:hidden}
         <!-- Formulario agregar/editar riesgo -->
         <form id="mpForm" class="mp-form" autocomplete="off">
           <h3 id="mpFormTitle">➕ Agregar riesgo</h3>
-          <div class="mp-field"><label>Proceso / Actividad</label><input id="f_proc" placeholder="Ej: Excavación"></div>
-          <div class="mp-field"><label>Puesto de trabajo</label><input id="f_puesto" placeholder="Ej: Operador retroexcavadora"></div>
-          <div class="mp-field"><label>Peligro</label><input id="f_pel" placeholder="Ej: Talud inestable"></div>
-          <div class="mp-field"><label>Riesgo (evento / consecuencia)</label><input id="f_rie" placeholder="Ej: Sepultamiento"></div>
-          <div class="mp-field"><label>Tipo de riesgo</label>
-            <select id="f_tipo">
-              <option value="">– Selecciona un tipo –</option>
-              <option value="Mecánico">Mecánico (golpes, atrapamiento, cortes)</option>
-              <option value="Físico">Físico (ruido, vibración, temperatura, presión)</option>
-              <option value="Químico">Químico (polvos, gases, vapores, sustancias)</option>
-              <option value="Biológico">Biológico (virus, bacterias, hongos)</option>
-              <option value="Ergonómico">Ergonómico (TMERT, sobreesfuerzo, posturas)</option>
-              <option value="Psicosocial">Psicosocial (carga mental, estrés laboral)</option>
-              <option value="Violencia y acoso">Violencia y acoso (Ley Karin)</option>
-              <option value="Eléctrico">Eléctrico (contacto directo/indirecto, arco)</option>
-              <option value="Locativo">Locativo (caídas mismo nivel, orden y aseo)</option>
-              <option value="Trabajo en altura">Trabajo en altura (caída distinto nivel)</option>
-              <option value="Incendio / Explosión">Incendio / Explosión</option>
-              <option value="Radiaciones">Radiaciones (ionizantes / no ionizantes)</option>
-              <option value="Tránsito / Conducción">Tránsito / Conducción de vehículos</option>
-              <option value="Ambiental / Natural">Ambiental / Natural (sismo, clima, geográfico)</option>
-              <option value="Otro">Otro</option>
-            </select>
+
+          <div class="mp-sec">1 · Proceso y tarea</div>
+          <div class="mp-field"><label>Proceso / Actividad</label><input id="f_proc" placeholder="Ej: Preparación de alimentos"></div>
+          <div class="mp-field"><label>Puesto de trabajo</label><input id="f_puesto" placeholder="Ej: Ayudante de cocina"></div>
+          <div class="mp-field"><label>Tarea</label><input id="f_tarea" placeholder="Ej: Fritura de alimentos"></div>
+          <div class="mp-field"><label>Tipo de tarea</label>
+            <select id="f_tareaTipo"><option value="">–</option><option value="Rutinaria">Rutinaria</option><option value="No rutinaria">No rutinaria</option></select>
           </div>
+
+          <div class="mp-sec">2 · Peligro y riesgo</div>
+          <div class="mp-field"><label>Identificación de peligro / factor de riesgo</label><input id="f_pel" placeholder="Ej: Aceite caliente, salpicaduras"></div>
+          <div class="mp-field"><label>Factor GEMA</label>
+            <select id="f_gema"><option value="">– Selecciona –</option><option value="Gente">Gente (factor humano)</option><option value="Equipos">Equipos (herramientas, maquinaria)</option><option value="Materiales">Materiales (materia prima, sustancias)</option><option value="Ambiente">Ambiente (entorno, infraestructura)</option></select>
+          </div>
+          <div class="mp-field"><label>Familia del riesgo</label>
+            <select id="f_familia"><option value="">– Selecciona familia –</option></select>
+          </div>
+          <div class="mp-field"><label>Riesgo</label>
+            <select id="f_riesgo"><option value="">– Primero elige familia –</option></select>
+          </div>
+          <div class="mp-field"><label>Riesgo específico</label>
+            <select id="f_rieesp"><option value="">– Primero elige riesgo –</option></select>
+          </div>
+
+          <div class="mp-sec">3 · Control actual y evaluación (VEP = P × C)</div>
+          <div class="mp-field"><label>Medida de control actual</label><textarea id="f_medact" rows="2" placeholder="Controles que ya existen hoy (si no hay ninguno, indícalo)"></textarea></div>
           <div class="mp-pc">
             <div class="mp-field"><label>Probabilidad</label>
-              <select id="f_p"><option value="">–</option><option value="1">1 · Muy baja</option><option value="2">2 · Baja</option><option value="3">3 · Media</option><option value="4">4 · Alta</option></select>
+              <select id="f_p"><option value="">–</option><option value="1">Baja (1)</option><option value="2">Media (2)</option><option value="4">Alta (4)</option></select>
             </div>
             <div class="mp-field"><label>Consecuencia</label>
-              <select id="f_c"><option value="">–</option><option value="1">1 · Leve</option><option value="2">2 · Moderada</option><option value="3">3 · Grave</option><option value="4">4 · Fatal</option></select>
+              <select id="f_c"><option value="">–</option><option value="1">Ligeramente dañino (1)</option><option value="2">Dañino (2)</option><option value="4">Extremadamente dañino (4)</option></select>
             </div>
           </div>
-          <div class="mp-prev" id="mpPrev"><span class="mp-b mp-none">—</span> <span class="mp-prevtxt">Nivel de riesgo aparecerá aquí</span></div>
-          <div class="mp-field"><label>Medidas de control (jerarquía DS 44)</label><textarea id="f_med" rows="2" placeholder="Eliminación → Sustitución → Ingeniería → Administrativas → EPP"></textarea></div>
-          <div class="mp-field"><label>Responsable</label><input id="f_resp" placeholder="Ej: Jefe de obra"></div>
+          <div class="mp-prev" id="mpPrev"><span class="mp-b mp-none">—</span> <span class="mp-prevtxt">Nivel de riesgo (VEP) aparecerá aquí</span></div>
+
+          <div class="mp-sec">4 · Medida de control propuesta</div>
+          <div class="mp-field"><label>Requisito legal asociado</label><input id="f_reqlegal" placeholder="Ej: DS 594 Art. 42 · DS 44 Art. 13"></div>
+          <div class="mp-field"><label>Jerarquía de control (medida a implementar)</label><textarea id="f_jerarquia" rows="2" placeholder="Eliminación → Sustitución → Ingeniería → Administrativa → EPP"></textarea></div>
+          <div class="mp-pc">
+            <div class="mp-field"><label>Responsable de ejecución</label><input id="f_respej" placeholder="Ej: Jefe de cocina"></div>
+            <div class="mp-field"><label>Plazo de ejecución</label><input id="f_plazoej" type="date"></div>
+          </div>
+          <div class="mp-pc">
+            <div class="mp-field"><label>Responsable de seguimiento</label><input id="f_respseg" placeholder="Ej: Prevencionista"></div>
+            <div class="mp-field"><label>Plazo de seguimiento</label><input id="f_plazoseg" type="date"></div>
+          </div>
+
+          <div class="mp-sec">5 · Riesgo residual (después del control)</div>
+          <div class="mp-pc">
+            <div class="mp-field"><label>Probabilidad residual</label>
+              <select id="f_pr"><option value="">–</option><option value="1">Baja (1)</option><option value="2">Media (2)</option><option value="4">Alta (4)</option></select>
+            </div>
+            <div class="mp-field"><label>Consecuencia residual</label>
+              <select id="f_cr"><option value="">–</option><option value="1">Ligeramente dañino (1)</option><option value="2">Dañino (2)</option><option value="4">Extremadamente dañino (4)</option></select>
+            </div>
+          </div>
+          <div class="mp-prev" id="mpPrevR"><span class="mp-b mp-none">—</span> <span class="mp-prevtxt">Riesgo residual aparecerá aquí</span></div>
+
           <div class="mp-formbtns">
             <button type="submit" class="mp-btn mp-btn-green" id="mpSaveBtn">Guardar riesgo</button>
             <button type="button" class="mp-btn mp-btn-ghost" id="mpCancelBtn" style="display:none">Cancelar</button>
@@ -531,19 +555,24 @@ body.gated{overflow:hidden}
         <div class="mp-matrixwrap">
           <div class="mp-mtitle"><b>Matriz de riesgos</b><span id="mpCount" class="mp-count">0 riesgos</span></div>
           <div class="mp-legend">
-            <div><b>Nivel de riesgo (VR = P × C):</b></div>
-            <div class="mp-lg"><span class="sw" style="background:#2f9e44"></span> Bajo (1–3)</div>
-            <div class="mp-lg"><span class="sw" style="background:#f0a500"></span> Medio (4–6)</div>
-            <div class="mp-lg"><span class="sw" style="background:#e8590c"></span> Alto (8–9)</div>
-            <div class="mp-lg"><span class="sw" style="background:#c92a2a"></span> Crítico (12–16)</div>
-            <div class="mp-jer">Jerarquía de control DS 44: 1° Eliminación · 2° Sustitución · 3° Ingeniería · 4° Administrativas · 5° EPP</div>
+            <div><b>Nivel de riesgo (VEP = P × C):</b></div>
+            <div class="mp-lg"><span class="sw" style="background:#2f9e44"></span> Tolerable (≤2)</div>
+            <div class="mp-lg"><span class="sw" style="background:#f0a500"></span> Moderado (4)</div>
+            <div class="mp-lg"><span class="sw" style="background:#e8590c"></span> Importante (8)</div>
+            <div class="mp-lg"><span class="sw" style="background:#c92a2a"></span> Intolerable (16)</div>
+            <div class="mp-jer">Probabilidad: Baja 1 · Media 2 · Alta 4 &nbsp;|&nbsp; Consecuencia: Ligeramente dañino 1 · Dañino 2 · Extremadamente dañino 4 &nbsp;|&nbsp; Jerarquía de control (DS 44 / ISP): 1° Eliminación · 2° Sustitución · 3° Ingeniería · 4° Administrativa · 5° EPP</div>
           </div>
           <div class="mp-scroll">
             <table class="mp-table" id="mpTable">
               <thead><tr>
-                <th style="width:26px">N°</th><th>Proceso</th><th>Puesto</th><th>Peligro</th><th>Riesgo</th><th style="width:90px">Tipo</th>
-                <th style="width:32px">P</th><th style="width:32px">C</th><th style="width:38px">VR</th><th style="width:74px">Nivel</th>
-                <th>Medidas de control</th><th style="width:100px">Responsable</th><th style="width:66px" class="mp-noprint">Acciones</th>
+                <th style="width:26px">N°</th><th>Proceso</th><th>Puesto</th><th>Tarea</th><th>Peligro / factor</th>
+                <th style="width:70px">Familia</th><th>Riesgo</th><th>Riesgo específico</th>
+                <th>Control actual</th>
+                <th style="width:26px">P</th><th style="width:26px">C</th><th style="width:34px">VEP</th><th style="width:82px">Magnitud</th>
+                <th>Requisito legal</th><th>Jerarquía de control</th>
+                <th style="width:90px">Resp. ejec.</th><th style="width:74px">Plazo ejec.</th><th style="width:90px">Resp. seg.</th><th style="width:74px">Plazo seg.</th>
+                <th style="width:26px">P<sub>r</sub></th><th style="width:26px">C<sub>r</sub></th><th style="width:34px">VEP<sub>r</sub></th><th style="width:82px">Residual</th>
+                <th style="width:60px" class="mp-noprint">Acciones</th>
               </tr></thead>
               <tbody id="mpTbody"></tbody>
             </table>
@@ -1296,7 +1325,45 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
 
   function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-  function nivelFor(v){ if(v<=3)return['Bajo','mp-bajo']; if(v<=6)return['Medio','mp-medio']; if(v<=9)return['Alto','mp-alto']; return['Crítico','mp-crit']; }
+  // Nivel de riesgo según método VEP (ISP / DS 44): valores VEP = 1,2,4,8,16.
+  function nivelVEP(v){ if(!v)return['—','mp-none']; if(v<=2)return['Tolerable','mp-bajo']; if(v<=4)return['Moderado','mp-medio']; if(v<=8)return['Importante','mp-alto']; return['Intolerable','mp-crit']; }
+  // Catálogo oficial ISP (Anexo 3): Familia → Riesgo → Riesgo específico (desplegables en cascada).
+  var CAT={
+    'Seguridad':{
+      'Caída de personas':['Caídas al mismo nivel','Caídas a distinto nivel','Caídas de altura','Caídas al agua'],
+      'Contacto con objetos':['Atrapamiento','Caída de objetos','Cortes por objetos/herramientas cortopunzantes','Choque contra objetos'],
+      'Contacto con seres vivos':['Contacto con personas','Contacto con animales y/o insectos'],
+      'Contactos térmicos':['Contactos térmicos por calor','Contactos térmicos por frío'],
+      'Contacto con energía eléctrica':['Contactos eléctricos directos baja tensión','Contactos eléctricos directos alta tensión','Contactos eléctricos indirectos baja tensión','Contactos eléctricos indirectos alta tensión'],
+      'Contacto con sustancias químicas':['Contacto con sustancias cáusticas y/o corrosivas','Contacto con otras sustancias químicas'],
+      'Contacto con elementos que se proyectan':['Explosiones','Proyección de fragmentos y/o partículas'],
+      'Contacto con vehículos en movimiento':['Atropellos o golpes con vehículos','Choque, colisión o volcamiento'],
+      'Incendios':['Incendios'],
+      'Exposición a condiciones atmosféricas extremas':['Exposición a ambientes con deficiencia de oxígeno','Exposición a sustancias químicas tóxicas'],
+      'Exposición a altos niveles de radiación':['Exposición a radiaciones no ionizantes','Exposición a radiaciones ionizantes'],
+      'Ingesta de sustancias nocivas':['Ingesta de sustancias nocivas']
+    },
+    'Higiénicos':{
+      'Agentes químicos':['Exposición a aerosoles sólidos','Exposición a aerosoles líquidos','Exposición a gases y vapores'],
+      'Agentes físicos':['Exposición a ruido','Exposición a vibraciones','Exposición a radiaciones ionizantes','Exposición a radiaciones no ionizantes','Exposición a calor','Exposición a frío','Exposición a altas presiones','Exposición a bajas presiones'],
+      'Agentes biológicos':['Transmisión por fluidos corporales','Transmisión por inhalación dermal, oral y parenteral']
+    },
+    'Musculoesqueléticos':{
+      'Manejo de cargas (MMC)':['Sobrecarga física por manejo manual de carga'],
+      'Manejo de pacientes (MMP)':['Sobrecarga física por manejo manual de pacientes'],
+      'Trabajo repetitivo':['Sobrecarga física por trabajo repetitivo de extremidades superiores'],
+      'Sobrecarga postural':['Sobrecarga postural por trabajo de pie','Sobrecarga postural por trabajo sentado','Sobrecarga postural por trabajo en cuclillas','Sobrecarga postural por trabajo arrodillado','Sobrecarga postural por tronco inclinado, en torsión o lateralización','Sobrecarga postural por flexión/extensión de columna cervical','Sobrecarga postural por trabajo fuera del alcance funcional'],
+      'Posturas estáticas':['Sobrecarga postural por actividad muscular estática']
+    },
+    'Psicosocial':{
+      'Riesgo psicosocial':['Exigencias psicológicas en el trabajo','Trabajo activo y desarrollo de habilidades','Apoyo social en la empresa y calidad del liderazgo','Compensaciones','Doble presencia']
+    }
+  };
+  function fillSelect(sel,items,ph){ sel.innerHTML=''; var o0=document.createElement('option'); o0.value=''; o0.textContent=ph; sel.appendChild(o0); items.forEach(function(x){ var o=document.createElement('option'); o.value=x; o.textContent=x; sel.appendChild(o); }); }
+  function initFamilia(){ fillSelect(q('#f_familia'), Object.keys(CAT), '– Selecciona familia –'); }
+  initFamilia(); // el catálogo Familia→Riesgo es fijo: se puebla una sola vez al cargar el script
+  function onFamilia(keepRiesgo,keepEsp){ var fam=q('#f_familia').value; var rs=(fam&&CAT[fam])?Object.keys(CAT[fam]):[]; fillSelect(q('#f_riesgo'), rs, fam?'– Selecciona riesgo –':'– Primero elige familia –'); if(keepRiesgo) q('#f_riesgo').value=keepRiesgo; onRiesgo(keepEsp); }
+  function onRiesgo(keepEsp){ var fam=q('#f_familia').value, rie=q('#f_riesgo').value; var es=(fam&&rie&&CAT[fam]&&CAT[fam][rie])?CAT[fam][rie]:[]; fillSelect(q('#f_rieesp'), es, rie?'– Selecciona riesgo específico –':'– Primero elige riesgo –'); if(keepEsp) q('#f_rieesp').value=keepEsp; }
   function fdate(ts){ if(!ts)return'—'; try{return new Date(ts).toLocaleDateString('es-CL');}catch(e){return'—';} }
   function findCompany(id){ for(var i=0;i<DB.companies.length;i++) if(DB.companies[i].id===id) return DB.companies[i]; return null; }
   function normalize(d){ if(d&&Array.isArray(d.companies)) return {updatedAt:d.updatedAt||0,companies:d.companies.map(function(c){return {id:c.id||uid(),nombre:c.nombre||'(sin nombre)',riesgos:Array.isArray(c.riesgos)?c.riesgos:[],updatedAt:c.updatedAt||Date.now()};})}; return {updatedAt:0,companies:[]}; }
@@ -1361,24 +1428,53 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
     q('#mpDetailMeta').textContent=c.riesgos.length+' riesgo(s) · última edición '+fdate(c.updatedAt);
     q('#mpNoRisks').style.display=c.riesgos.length?'none':'block';
     c.riesgos.forEach(function(r,i){
-      var vr=(+r.p)*(+r.c), nv=nivelFor(vr), tr=document.createElement('tr');
+      var vep=(+r.p)*(+r.c)||0, nv=nivelVEP(vep);
+      var vepr=(+r.pr)*(+r.cr)||0, nvr=(r.pr&&r.cr)?nivelVEP(vepr):['—','mp-none'];
+      var sub=function(t){ return t?('<br><span class="mp-sub2">'+esc(t)+'</span>'):''; };
+      var tr=document.createElement('tr');
       tr.innerHTML='<td class="mp-num">'+(i+1)+'</td>'+
-        '<td>'+esc(r.proc)+'</td><td>'+esc(r.puesto)+'</td><td>'+esc(r.pel)+'</td><td>'+esc(r.rie)+'</td><td>'+esc(r.tipo)+'</td>'+
-        '<td class="mp-c">'+esc(r.p)+'</td><td class="mp-c">'+esc(r.c)+'</td><td class="mp-c">'+vr+'</td>'+
+        '<td>'+esc(r.proc)+'</td><td>'+esc(r.puesto)+'</td>'+
+        '<td>'+esc(r.tarea)+sub(r.tareaTipo)+'</td>'+
+        '<td>'+esc(r.pel)+sub(r.gema)+'</td>'+
+        '<td>'+esc(r.familia)+'</td><td>'+esc(r.riesgo)+'</td><td>'+esc(r.rieesp||r.rie)+'</td>'+
+        '<td>'+esc(r.medact)+'</td>'+
+        '<td class="mp-c">'+esc(r.p)+'</td><td class="mp-c">'+esc(r.c)+'</td><td class="mp-c">'+(vep||'')+'</td>'+
         '<td class="mp-c"><span class="mp-b '+nv[1]+'">'+nv[0]+'</span></td>'+
-        '<td>'+esc(r.med)+'</td><td>'+esc(r.resp)+'</td>'+
+        '<td>'+esc(r.reqlegal)+'</td><td>'+esc(r.jerarquia||r.med)+'</td>'+
+        '<td>'+esc(r.respej||r.resp)+'</td><td class="mp-c">'+esc(r.plazoej)+'</td>'+
+        '<td>'+esc(r.respseg)+'</td><td class="mp-c">'+esc(r.plazoseg)+'</td>'+
+        '<td class="mp-c">'+esc(r.pr)+'</td><td class="mp-c">'+esc(r.cr)+'</td><td class="mp-c">'+(vepr||'')+'</td>'+
+        '<td class="mp-c"><span class="mp-b '+nvr[1]+'">'+nvr[0]+'</span></td>'+
         '<td class="mp-noprint mp-actions"><button data-edit="'+i+'" title="Editar">✎</button><button data-delr="'+i+'" title="Borrar">🗑</button></td>';
       tb.appendChild(tr);
     });
   }
 
   /* ---- Formulario ---- */
-  function readForm(){ return {proc:q('#f_proc').value.trim(),puesto:q('#f_puesto').value.trim(),pel:q('#f_pel').value.trim(),rie:q('#f_rie').value.trim(),tipo:q('#f_tipo').value,p:q('#f_p').value,c:q('#f_c').value,med:q('#f_med').value.trim(),resp:q('#f_resp').value.trim()}; }
-  function fillForm(r){ q('#f_proc').value=r.proc||''; q('#f_puesto').value=r.puesto||''; q('#f_pel').value=r.pel||''; q('#f_rie').value=r.rie||''; q('#f_tipo').value=r.tipo||''; q('#f_p').value=r.p||''; q('#f_c').value=r.c||''; q('#f_med').value=r.med||''; q('#f_resp').value=r.resp||''; updatePrev(); }
-  function resetForm(){ q('#mpForm').reset(); editIdx=-1; q('#mpFormTitle').textContent='➕ Agregar riesgo'; q('#mpSaveBtn').textContent='Guardar riesgo'; q('#mpCancelBtn').style.display='none'; updatePrev(); }
-  function updatePrev(){ var p=+q('#f_p').value,c=+q('#f_c').value,prev=q('#mpPrev');
-    if(!p||!c){ prev.innerHTML='<span class="mp-b mp-none">—</span> <span class="mp-prevtxt">Nivel de riesgo aparecerá aquí</span>'; return; }
-    var vr=p*c,nv=nivelFor(vr); prev.innerHTML='<span class="mp-b '+nv[1]+'">'+nv[0]+'</span> <span class="mp-prevtxt">VR = '+p+' × '+c+' = '+vr+'</span>'; }
+  function readForm(){ return {
+    proc:q('#f_proc').value.trim(), puesto:q('#f_puesto').value.trim(), tarea:q('#f_tarea').value.trim(), tareaTipo:q('#f_tareaTipo').value,
+    pel:q('#f_pel').value.trim(), gema:q('#f_gema').value, familia:q('#f_familia').value, riesgo:q('#f_riesgo').value, rieesp:q('#f_rieesp').value,
+    medact:q('#f_medact').value.trim(), p:q('#f_p').value, c:q('#f_c').value,
+    reqlegal:q('#f_reqlegal').value.trim(), jerarquia:q('#f_jerarquia').value.trim(),
+    respej:q('#f_respej').value.trim(), plazoej:q('#f_plazoej').value, respseg:q('#f_respseg').value.trim(), plazoseg:q('#f_plazoseg').value,
+    pr:q('#f_pr').value, cr:q('#f_cr').value
+  }; }
+  function fillForm(r){
+    q('#f_proc').value=r.proc||''; q('#f_puesto').value=r.puesto||''; q('#f_tarea').value=r.tarea||''; q('#f_tareaTipo').value=r.tareaTipo||'';
+    q('#f_pel').value=r.pel||''; q('#f_gema').value=r.gema||'';
+    q('#f_familia').value=r.familia||''; onFamilia(r.riesgo||'', r.rieesp||r.rie||'');
+    q('#f_medact').value=r.medact||''; q('#f_p').value=r.p||''; q('#f_c').value=r.c||'';
+    q('#f_reqlegal').value=r.reqlegal||''; q('#f_jerarquia').value=r.jerarquia||r.med||'';
+    q('#f_respej').value=r.respej||r.resp||''; q('#f_plazoej').value=r.plazoej||''; q('#f_respseg').value=r.respseg||''; q('#f_plazoseg').value=r.plazoseg||'';
+    q('#f_pr').value=r.pr||''; q('#f_cr').value=r.cr||'';
+    updatePrev(); updatePrevR();
+  }
+  function resetForm(){ q('#mpForm').reset(); editIdx=-1; q('#mpFormTitle').textContent='➕ Agregar riesgo'; q('#mpSaveBtn').textContent='Guardar riesgo'; q('#mpCancelBtn').style.display='none'; onFamilia(); updatePrev(); updatePrevR(); }
+  function vepPrev(pSel,cSel,prevEl,ph){ var p=+q(pSel).value,c=+q(cSel).value, el=q(prevEl);
+    if(!p||!c){ el.innerHTML='<span class="mp-b mp-none">—</span> <span class="mp-prevtxt">'+ph+'</span>'; return; }
+    var v=p*c,nv=nivelVEP(v); el.innerHTML='<span class="mp-b '+nv[1]+'">'+nv[0]+'</span> <span class="mp-prevtxt">VEP = '+p+' × '+c+' = '+v+'</span>'; }
+  function updatePrev(){ vepPrev('#f_p','#f_c','#mpPrev','Nivel de riesgo (VEP) aparecerá aquí'); }
+  function updatePrevR(){ vepPrev('#f_pr','#f_cr','#mpPrevR','Riesgo residual aparecerá aquí'); }
   function submitForm(e){
     e.preventDefault();
     var c=findCompany(curId);
@@ -1387,7 +1483,7 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
       curId=c.id; DB.companies.push(c);
     }
     var r=readForm();
-    if(!r.proc||!r.pel||!r.rie||!r.p||!r.c){ alert('Completa al menos: Proceso, Peligro, Riesgo, Probabilidad y Consecuencia.'); return; }
+    if(!r.proc||!r.pel||!r.p||!r.c){ alert('Completa al menos: Proceso, Peligro/factor, Probabilidad y Consecuencia.'); return; }
     if(editIdx>=0) c.riesgos[editIdx]=r; else c.riesgos.push(r);
     c.updatedAt=Date.now(); persist(); resetForm(); renderMatrix();
   }
@@ -1415,6 +1511,10 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
   q('#mpCancelBtn').addEventListener('click',resetForm);
   q('#f_p').addEventListener('change',updatePrev);
   q('#f_c').addEventListener('change',updatePrev);
+  q('#f_pr').addEventListener('change',updatePrevR);
+  q('#f_cr').addEventListener('change',updatePrevR);
+  q('#f_familia').addEventListener('change',function(){ onFamilia(); });
+  q('#f_riesgo').addEventListener('change',function(){ onRiesgo(); });
   q('#mpTbody').addEventListener('click',function(e){
     var c=findCompany(curId); if(!c) return;
     var ed=e.target.closest('[data-edit]'), dl=e.target.closest('[data-delr]');
