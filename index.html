@@ -1306,6 +1306,7 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
 #viewMiper .mp-lg{display:flex;gap:7px;align-items:center}
 #viewMiper .mp-lg .sw,#viewMiper .mp-legend .sw{width:18px;height:13px;border-radius:3px;display:inline-block}
 #viewMiper .mp-jer{flex-basis:100%;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);padding-top:8px;margin-top:2px}
+#viewMiper .mp-cod{color:var(--muted);font-size:.8em;white-space:nowrap}
 .mp-printhead{display:none}
 @media print{
   .mp-printhead{display:block!important;margin-bottom:14px}
@@ -1328,38 +1329,54 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
   // Nivel de riesgo según método VEP (ISP / DS 44): valores VEP = 1,2,4,8,16.
   function nivelVEP(v){ if(!v)return['—','mp-none']; if(v<=2)return['Tolerable','mp-bajo']; if(v<=4)return['Moderado','mp-medio']; if(v<=8)return['Importante','mp-alto']; return['Intolerable','mp-crit']; }
   // Catálogo oficial ISP (Anexo 3): Familia → Riesgo → Riesgo específico (desplegables en cascada).
+  // Catálogo transcrito verbatim del Anexo 3 (Codificación de Riesgos Laborales)
+  // de la Guía ISP para la Identificación y Evaluación de Riesgos en los Lugares
+  // de Trabajo, versión 03 (Res. Exenta 668/25). Cada riesgo específico trae su
+  // código oficial {n: nombre, c: código}. "Violencia y acoso" y "Emergencias y
+  // desastres" NO son familias propias en el Anexo 3 (el primero es la dimensión
+  // psicosocial D12; el segundo se evalúa con VEP pero no tiene codificación
+  // propia, se rige por los planes SENAPRED/MINTRAB) — no se inventan como
+  // familias nuevas. Ver PROMPT_MIPER.md (carpeta "12 MAPA DE RIESGO") para el
+  // detalle de la transcripción.
   var CAT={
     'Seguridad':{
-      'Caída de personas':['Caídas al mismo nivel','Caídas a distinto nivel','Caídas de altura','Caídas al agua'],
-      'Contacto con objetos':['Atrapamiento','Caída de objetos','Cortes por objetos/herramientas cortopunzantes','Choque contra objetos'],
-      'Contacto con seres vivos':['Contacto con personas','Contacto con animales y/o insectos'],
-      'Contactos térmicos':['Contactos térmicos por calor','Contactos térmicos por frío'],
-      'Contacto con energía eléctrica':['Contactos eléctricos directos baja tensión','Contactos eléctricos directos alta tensión','Contactos eléctricos indirectos baja tensión','Contactos eléctricos indirectos alta tensión'],
-      'Contacto con sustancias químicas':['Contacto con sustancias cáusticas y/o corrosivas','Contacto con otras sustancias químicas'],
-      'Contacto con elementos que se proyectan':['Explosiones','Proyección de fragmentos y/o partículas'],
-      'Contacto con vehículos en movimiento':['Atropellos o golpes con vehículos','Choque, colisión o volcamiento'],
-      'Incendios':['Incendios'],
-      'Exposición a condiciones atmosféricas extremas':['Exposición a ambientes con deficiencia de oxígeno','Exposición a sustancias químicas tóxicas'],
-      'Exposición a altos niveles de radiación':['Exposición a radiaciones no ionizantes','Exposición a radiaciones ionizantes'],
-      'Ingesta de sustancias nocivas':['Ingesta de sustancias nocivas']
+      'Caída de personas':[{n:'Caídas al mismo nivel',c:'A1'},{n:'Caídas a distinto nivel',c:'A2'},{n:'Caídas de altura',c:'A3'},{n:'Caídas al agua',c:'A4'}],
+      'Contacto con objetos':[{n:'Atrapamiento',c:'B1'},{n:'Caída de objetos',c:'B2'},{n:'Cortes por objetos/herramientas corto-punzantes',c:'B3'},{n:'Choque contra objetos',c:'B4'}],
+      'Contacto con seres vivos':[{n:'Contacto con personas',c:'C1'},{n:'Contacto con animales y/o insectos',c:'C2'}],
+      'Contactos térmicos':[{n:'Contactos térmicos por calor',c:'E1'},{n:'Contactos térmicos por frío',c:'E2'}],
+      'Contacto con energía eléctrica':[{n:'Contactos eléctricos directos baja tensión',c:'F1'},{n:'Contactos eléctricos directos alta tensión',c:'F2'},{n:'Contactos eléctricos indirectos baja tensión',c:'F3'},{n:'Contactos eléctricos indirectos alta tensión',c:'F4'}],
+      'Contacto con sustancias químicas':[{n:'Contacto con sustancias cáusticas y/o corrosivas',c:'G1'},{n:'Contacto con otras sustancias químicas',c:'G2'}],
+      'Contacto con elementos que se proyectan':[{n:'Explosiones',c:'H1'},{n:'Proyección de fragmentos y/o partículas',c:'H2'}],
+      'Contacto con/en vehículos en movimiento':[{n:'Atropellos o golpes con vehículos',c:'I1'},{n:'Choque, colisión o volcamiento',c:'I2'}],
+      'Incendios':[{n:'Incendios',c:'J'}],
+      'Exposición a condiciones atmosféricas extremas':[{n:'Exposición a ambientes con deficiencia de oxígeno',c:'K1'},{n:'Exposición a sustancias químicas tóxicas',c:'K2'}],
+      'Exposición a radiaciones':[{n:'Exposición a radiaciones no ionizantes',c:'L1'},{n:'Exposición a radiaciones ionizantes',c:'L2'}],
+      'Ingesta de sustancias nocivas':[{n:'Ingesta de sustancias nocivas',c:'M'}],
+      'Otros riesgos':[{n:'Otros riesgos (no descritos en los ítems anteriores, a juicio del evaluador)',c:'N'}]
     },
     'Higiénicos':{
-      'Agentes químicos':['Exposición a aerosoles sólidos','Exposición a aerosoles líquidos','Exposición a gases y vapores'],
-      'Agentes físicos':['Exposición a ruido','Exposición a vibraciones','Exposición a radiaciones ionizantes','Exposición a radiaciones no ionizantes','Exposición a calor','Exposición a frío','Exposición a altas presiones','Exposición a bajas presiones'],
-      'Agentes biológicos':['Transmisión por fluidos corporales','Transmisión por inhalación dermal, oral y parenteral']
+      'Exposición a agentes químicos':[{n:'Exposición a aerosoles sólidos',c:'O1'},{n:'Exposición a aerosoles líquidos',c:'O2'},{n:'Exposición a gases y vapores',c:'O3'}],
+      'Exposición a agentes físicos':[{n:'Exposición a ruido',c:'P1'},{n:'Exposición a vibraciones — cuerpo completo',c:'P2'},{n:'Exposición a vibraciones — mano-brazo',c:'P3'},{n:'Exposición a radiaciones ionizantes',c:'P4'},{n:'Exposición a radiaciones no ionizantes',c:'P5'},{n:'Exposición a calor',c:'P6'},{n:'Exposición a frío',c:'P7'},{n:'Exposición a altas presiones',c:'P8'},{n:'Exposición a bajas presiones',c:'P9'}],
+      'Exposición a peligros biológicos':[{n:'Transmisión por fluidos corporales',c:'Q1'},{n:'Transmisión por inhalación dermal, oral y parenteral',c:'Q2'}]
     },
     'Musculoesqueléticos':{
-      'Manejo de cargas (MMC)':['Sobrecarga física por manejo manual de carga'],
-      'Manejo de pacientes (MMP)':['Sobrecarga física por manejo manual de pacientes'],
-      'Trabajo repetitivo':['Sobrecarga física por trabajo repetitivo de extremidades superiores'],
-      'Sobrecarga postural':['Sobrecarga postural por trabajo de pie','Sobrecarga postural por trabajo sentado','Sobrecarga postural por trabajo en cuclillas','Sobrecarga postural por trabajo arrodillado','Sobrecarga postural por tronco inclinado, en torsión o lateralización','Sobrecarga postural por flexión/extensión de columna cervical','Sobrecarga postural por trabajo fuera del alcance funcional'],
-      'Posturas estáticas':['Sobrecarga postural por actividad muscular estática']
+      'Manejo/Manipulación Manual de Carga (MMC) o personas/pacientes (MMP)':[{n:'Sobrecarga física por manipulación manual de cargas',c:'R1'},{n:'Sobrecarga física por manipulación de personas/pacientes',c:'R2'}],
+      'Trabajo repetitivo de miembros superiores':[{n:'Sobrecarga física por trabajo repetitivo de miembros superiores',c:'S1'}],
+      'Posturas forzadas':[{n:'Sobrecarga postural por trabajo de pie',c:'T1'},{n:'Sobrecarga postural por trabajo sentado',c:'T2'},{n:'Sobrecarga postural por trabajo en cuclillas',c:'T3'},{n:'Sobrecarga postural por trabajo arrodillado',c:'T4'},{n:'Sobrecarga postural por tronco inclinado, en torsión o lateralización',c:'T5'},{n:'Sobrecarga postural por flexión/extensión de columna cervical',c:'T6'},{n:'Sobrecarga postural por trabajo fuera del alcance funcional',c:'T7'}],
+      'Posturas estáticas':[{n:'Sobrecarga postural por actividad muscular estática',c:'T8'}]
     },
     'Psicosocial':{
-      'Riesgo psicosocial':['Exigencias psicológicas en el trabajo','Trabajo activo y desarrollo de habilidades','Apoyo social en la empresa y calidad del liderazgo','Compensaciones','Doble presencia']
+      'Riesgos psicosociales laborales':[
+        {n:'Carga de trabajo',c:'D1'},{n:'Exigencias emocionales',c:'D2'},{n:'Desarrollo profesional',c:'D3'},
+        {n:'Reconocimiento y claridad de rol',c:'D4'},{n:'Conflicto de rol',c:'D5'},{n:'Calidad del liderazgo',c:'D6'},
+        {n:'Compañerismo',c:'D7'},{n:'Inseguridad en las condiciones de trabajo',c:'D8'},{n:'Equilibrio trabajo y vida privada',c:'D9'},
+        {n:'Confianza y justicia organizacional',c:'D10'},{n:'Vulnerabilidad',c:'D11'},{n:'Violencia y acoso',c:'D12'}
+      ]
     }
   };
-  function fillSelect(sel,items,ph){ sel.innerHTML=''; var o0=document.createElement('option'); o0.value=''; o0.textContent=ph; sel.appendChild(o0); items.forEach(function(x){ var o=document.createElement('option'); o.value=x; o.textContent=x; sel.appendChild(o); }); }
+  // items puede ser array de strings (Familia, Riesgo) o de {n,c} (Riesgo específico,
+  // trae código). Si trae código se muestra "(código)" y se guarda en o.dataset.codigo.
+  function fillSelect(sel,items,ph){ sel.innerHTML=''; var o0=document.createElement('option'); o0.value=''; o0.textContent=ph; sel.appendChild(o0); items.forEach(function(x){ var o=document.createElement('option'); var esObj=(x&&typeof x==='object'); var nombre=esObj?x.n:x; o.value=nombre; o.textContent=(esObj&&x.c)?(nombre+' ('+x.c+')'):nombre; if(esObj&&x.c) o.dataset.codigo=x.c; sel.appendChild(o); }); }
   function initFamilia(){ fillSelect(q('#f_familia'), Object.keys(CAT), '– Selecciona familia –'); }
   initFamilia(); // el catálogo Familia→Riesgo es fijo: se puebla una sola vez al cargar el script
   function onFamilia(keepRiesgo,keepEsp){ var fam=q('#f_familia').value; var rs=(fam&&CAT[fam])?Object.keys(CAT[fam]):[]; fillSelect(q('#f_riesgo'), rs, fam?'– Selecciona riesgo –':'– Primero elige familia –'); if(keepRiesgo) q('#f_riesgo').value=keepRiesgo; onRiesgo(keepEsp); }
@@ -1436,7 +1453,7 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
         '<td>'+esc(r.proc)+'</td><td>'+esc(r.puesto)+'</td>'+
         '<td>'+esc(r.tarea)+sub(r.tareaTipo)+'</td>'+
         '<td>'+esc(r.pel)+sub(r.gema)+'</td>'+
-        '<td>'+esc(r.familia)+'</td><td>'+esc(r.riesgo)+'</td><td>'+esc(r.rieesp||r.rie)+'</td>'+
+        '<td>'+esc(r.familia)+'</td><td>'+esc(r.riesgo)+'</td><td>'+esc(r.rieesp||r.rie)+(r.codigo?' <span class="mp-cod">('+esc(r.codigo)+')</span>':'')+'</td>'+
         '<td>'+esc(r.medact)+'</td>'+
         '<td class="mp-c">'+esc(r.p)+'</td><td class="mp-c">'+esc(r.c)+'</td><td class="mp-c">'+(vep||'')+'</td>'+
         '<td class="mp-c"><span class="mp-b '+nv[1]+'">'+nv[0]+'</span></td>'+
@@ -1451,9 +1468,12 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
   }
 
   /* ---- Formulario ---- */
-  function readForm(){ return {
+  function readForm(){
+    var optEsp=q('#f_rieesp').selectedOptions[0];
+    return {
     proc:q('#f_proc').value.trim(), puesto:q('#f_puesto').value.trim(), tarea:q('#f_tarea').value.trim(), tareaTipo:q('#f_tareaTipo').value,
     pel:q('#f_pel').value.trim(), gema:q('#f_gema').value, familia:q('#f_familia').value, riesgo:q('#f_riesgo').value, rieesp:q('#f_rieesp').value,
+    codigo:(optEsp&&optEsp.dataset.codigo)||'',
     medact:q('#f_medact').value.trim(), p:q('#f_p').value, c:q('#f_c').value,
     reqlegal:q('#f_reqlegal').value.trim(), jerarquia:q('#f_jerarquia').value.trim(),
     respej:q('#f_respej').value.trim(), plazoej:q('#f_plazoej').value, respseg:q('#f_respseg').value.trim(), plazoseg:q('#f_plazoseg').value,
