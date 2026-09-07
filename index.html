@@ -452,6 +452,7 @@ body.gated{overflow:hidden}
     <div id="mpPrintHead" class="mp-printhead">
       <div class="mp-pht">Matriz de Identificación de Peligros y Evaluación de Riesgos (MIPER)</div>
       <div class="mp-phs">DS N° 44/2024 · Empresa: <b id="mpPrintCompany"></b> · Impreso: <span id="mpPrintDate"></span></div>
+      <table id="mpPrintEmpTable" class="mp-ptable"></table>
     </div>
 
     <!-- PANTALLA 1 · elegir empresa -->
@@ -481,6 +482,41 @@ body.gated{overflow:hidden}
           <button id="mpDelCompanyBtn" class="mp-btn mp-btn-danger">🗑 Borrar empresa</button>
         </div>
       </div>
+
+      <!-- Datos de la empresa: encabezado que sale tal cual al imprimir/exportar el MIPER -->
+      <details class="mp-empresa mp-noprint">
+        <summary>🏢 Datos de la empresa (encabezado IPER para imprimir)</summary>
+        <div class="mp-empform">
+          <div class="mp-field"><label>Código IPER</label><input id="e_codIper"></div>
+          <div class="mp-field"><label>N° de trabajadores</label><input id="e_nTotal" readonly title="Se calcula solo: hombres + mujeres"></div>
+          <div class="mp-field"><label>Fecha próxima actualización</label><input id="e_fechaProx" type="date"></div>
+
+          <div class="mp-field"><label>Folio IPER</label><input id="e_folio"></div>
+          <div class="mp-field"><label>N° de trabajadores hombres</label><input id="e_nH" type="number" min="0"></div>
+          <div class="mp-field"><label>Nombre representante legal</label><input id="e_repLegal"></div>
+
+          <div class="mp-field"><label>RUT empleador</label><input id="e_rut" placeholder="Ej: 76797275-K"></div>
+          <div class="mp-field"><label>N° de trabajadores mujeres</label><input id="e_nM" type="number" min="0"></div>
+          <div class="mp-field"><label>Responsable programa/plan de trabajo</label><input id="e_respPrograma"></div>
+
+          <div class="mp-field"><label>Nombre (razón social)</label><input id="e_razon"></div>
+          <div class="mp-field"><label>Nombre centro de trabajo</label><input id="e_centroNombre"></div>
+          <div class="mp-field"><label>Cargo</label><input id="e_cargo"></div>
+
+          <div class="mp-field"><label>Dirección</label><input id="e_direccion"></div>
+          <div class="mp-field"><label>Dirección centro de trabajo</label><input id="e_centroDireccion"></div>
+          <div class="mp-field"></div>
+
+          <div class="mp-field"><label>Comuna</label><input id="e_comuna"></div>
+          <div class="mp-field"><label>Nombre proceso (operacional/apoyo)</label><input id="e_proceso"></div>
+          <div class="mp-field"></div>
+
+          <div class="mp-field"><label>Código CIIU</label><input id="e_ciiu"></div>
+          <div class="mp-field"><label>Fecha elaboración matriz</label><input id="e_fechaElab" type="date"></div>
+          <div class="mp-field"></div>
+        </div>
+        <button id="mpEmpresaSaveBtn" type="button" class="mp-btn mp-btn-green">💾 Guardar datos de la empresa</button>
+      </details>
 
       <div class="mp-grid">
         <!-- Formulario agregar/editar riesgo -->
@@ -1307,6 +1343,16 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
 #viewMiper .mp-lg .sw,#viewMiper .mp-legend .sw{width:18px;height:13px;border-radius:3px;display:inline-block}
 #viewMiper .mp-jer{flex-basis:100%;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);padding-top:8px;margin-top:2px}
 #viewMiper .mp-cod{color:var(--muted);font-size:.8em;white-space:nowrap}
+#viewMiper .mp-empresa{margin:0 0 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px 14px 14px}
+#viewMiper .mp-empresa summary{cursor:pointer;padding:10px 0;font-weight:600}
+#viewMiper .mp-empform{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;margin-bottom:10px}
+#viewMiper .mp-empform input{width:100%}
+.mp-ptable{display:none;width:100%;border-collapse:collapse;margin-top:8px;font-size:.72rem}
+@media print{
+  .mp-ptable{display:table}
+  .mp-ptable td{border:1px solid #999;padding:4px 6px}
+  .mp-ptable td.mp-plabel{background:#eee;font-weight:700;width:16%}
+}
 .mp-printhead{display:none}
 @media print{
   .mp-printhead{display:block!important;margin-bottom:14px}
@@ -1383,7 +1429,11 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
   function onRiesgo(keepEsp){ var fam=q('#f_familia').value, rie=q('#f_riesgo').value; var es=(fam&&rie&&CAT[fam]&&CAT[fam][rie])?CAT[fam][rie]:[]; fillSelect(q('#f_rieesp'), es, rie?'– Selecciona riesgo específico –':'– Primero elige riesgo –'); if(keepEsp) q('#f_rieesp').value=keepEsp; }
   function fdate(ts){ if(!ts)return'—'; try{return new Date(ts).toLocaleDateString('es-CL');}catch(e){return'—';} }
   function findCompany(id){ for(var i=0;i<DB.companies.length;i++) if(DB.companies[i].id===id) return DB.companies[i]; return null; }
-  function normalize(d){ if(d&&Array.isArray(d.companies)) return {updatedAt:d.updatedAt||0,companies:d.companies.map(function(c){return {id:c.id||uid(),nombre:c.nombre||'(sin nombre)',riesgos:Array.isArray(c.riesgos)?c.riesgos:[],updatedAt:c.updatedAt||Date.now()};})}; return {updatedAt:0,companies:[]}; }
+  // Datos de empresa para el encabezado IPER al imprimir (RUT, código IPER, etc.).
+  // No vienen de la Guía ISP (el PDF no exige este formato de encabezado en
+  // particular) sino del formato real que ya usa la empresa — ver PROMPT_MIPER.md.
+  function empresaDefault(){ return {codIper:'',folio:'',rut:'',razon:'',direccion:'',comuna:'',ciiu:'',nH:'',nM:'',centroNombre:'',centroDireccion:'',proceso:'',fechaProx:'',fechaElab:'',repLegal:'',respPrograma:'',cargo:''}; }
+  function normalize(d){ if(d&&Array.isArray(d.companies)) return {updatedAt:d.updatedAt||0,companies:d.companies.map(function(c){return {id:c.id||uid(),nombre:c.nombre||'(sin nombre)',riesgos:Array.isArray(c.riesgos)?c.riesgos:[],updatedAt:c.updatedAt||Date.now(),empresa:Object.assign(empresaDefault(),c.empresa||{})};})}; return {updatedAt:0,companies:[]}; }
   // Marca de tiempo más reciente de un set de datos (doc + empresas), para decidir qué versión es más nueva.
   function stamp(d){ var m=(d&&d.updatedAt)||0; if(d&&Array.isArray(d.companies)) d.companies.forEach(function(c){ if((c.updatedAt||0)>m) m=c.updatedAt; }); return m; }
 
@@ -1407,11 +1457,60 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
   }
   function showHome(){ curId=null; q('#mpDetail').style.display='none'; q('#mpHome').style.display='block'; renderHome();
     var msg=q('#mpSelMsg'); if(msg) msg.style.display='none'; var inp=q('#mpCompanyInput'); if(inp){ inp.style.borderColor=''; try{inp.focus();}catch(e){} } }
+  /* ---- Datos de la empresa (encabezado IPER para imprimir) ---- */
+  var EMP_FIELDS=['codIper','folio','rut','razon','direccion','comuna','ciiu','nH','nM','centroNombre','centroDireccion','proceso','fechaProx','fechaElab','repLegal','respPrograma','cargo'];
+  function fillEmpresaForm(emp){
+    emp=emp||empresaDefault();
+    EMP_FIELDS.forEach(function(k){ var el=q('#e_'+k); if(el) el.value=emp[k]||''; });
+    updateNTotal();
+  }
+  function readEmpresaForm(){
+    var emp={}; EMP_FIELDS.forEach(function(k){ var el=q('#e_'+k); emp[k]=el?el.value.trim():''; }); return emp;
+  }
+  function updateNTotal(){
+    var h=+q('#e_nH').value||0, m=+q('#e_nM').value||0, t=q('#e_nTotal');
+    if(t) t.value=(h||m)?(h+m):'';
+  }
+  // Tabla de 3 columnas (etiqueta/valor) que se ve solo al imprimir, con el
+  // mismo encabezado IPER que trae la matriz real de la empresa (RUT, código
+  // IPER, dotación, representante legal, etc.) — ver PROMPT_MIPER.md.
+  function renderPrintHead(c){
+    var emp=(c&&c.empresa)||empresaDefault();
+    var nTotal=((+emp.nH||0)||(+emp.nM||0))?String((+emp.nH||0)+(+emp.nM||0)):'';
+    var rows=[
+      ['Código IPER',emp.codIper,'N° de trabajadores',nTotal,'Fecha próxima actualización',fdatestr(emp.fechaProx)],
+      ['Folio IPER',emp.folio,'N° de trabajadores hombres',emp.nH,'Nombre representante legal',emp.repLegal],
+      ['RUT empleador',emp.rut,'N° de trabajadores mujeres',emp.nM,'Responsable programa/plan de trabajo',emp.respPrograma],
+      ['Nombre (razón social)',emp.razon,'Nombre centro de trabajo',emp.centroNombre,'Cargo',emp.cargo],
+      ['Dirección',emp.direccion,'Dirección centro de trabajo',emp.centroDireccion,'',''],
+      ['Comuna',emp.comuna,'Nombre proceso (operacional/apoyo)',emp.proceso,'',''],
+      ['Código CIIU',emp.ciiu,'Fecha elaboración matriz',fdatestr(emp.fechaElab),'','']
+    ];
+    var html=rows.map(function(r){
+      return '<tr>'+
+        '<td class="mp-plabel">'+esc(r[0])+'</td><td>'+esc(r[1])+'</td>'+
+        '<td class="mp-plabel">'+esc(r[2])+'</td><td>'+esc(r[3])+'</td>'+
+        '<td class="mp-plabel">'+esc(r[4])+'</td><td>'+esc(r[5])+'</td>'+
+      '</tr>';
+    }).join('');
+    var tbl=q('#mpPrintEmpTable'); if(tbl) tbl.innerHTML=html;
+  }
+  // Fechas del encabezado (input type=date, formato YYYY-MM-DD) a DD-MM-AA para
+  // que se vean igual que en la matriz real (ej. "26-05-27").
+  function fdatestr(iso){ if(!iso) return ''; var p=iso.split('-'); if(p.length!==3) return iso; return p[2]+'-'+p[1]+'-'+p[0].slice(2); }
+  function saveEmpresa(){
+    var c=findCompany(curId); if(!c) return;
+    c.empresa=readEmpresaForm(); c.updatedAt=Date.now(); persist();
+    renderPrintHead(c);
+    var btn=q('#mpEmpresaSaveBtn'); if(btn){ var txt=btn.textContent; btn.textContent='✓ Guardado'; setTimeout(function(){btn.textContent=txt;},1500); }
+  }
+
   function showDetail(id){
     var c=findCompany(id); if(!c) return showHome();
     curId=id; editIdx=-1; resetForm();
     q('#mpHome').style.display='none'; q('#mpDetail').style.display='block';
     q('#mpDetailName').textContent=c.nombre; q('#mpPrintCompany').textContent=c.nombre;
+    fillEmpresaForm(c.empresa); renderPrintHead(c);
     renderMatrix();
   }
   function openByName(name){
@@ -1422,7 +1521,7 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
     var msg2=q('#mpSelMsg'); if(msg2) msg2.style.display='none'; q('#mpCompanyInput').style.borderColor='';
     var c=null;
     for(var i=0;i<DB.companies.length;i++){ if(DB.companies[i].nombre.toLowerCase()===name.toLowerCase()){c=DB.companies[i];break;} }
-    if(!c){ c={id:uid(),nombre:name,riesgos:[],updatedAt:Date.now()}; DB.companies.push(c); persist(); }
+    if(!c){ c={id:uid(),nombre:name,riesgos:[],updatedAt:Date.now(),empresa:empresaDefault()}; DB.companies.push(c); persist(); }
     q('#mpCompanyInput').value=''; showDetail(c.id);
   }
   // "Crear MIPER": entra directo a la matriz. Si escribiste un nombre lo usa
@@ -1432,7 +1531,7 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
     var name=(q('#mpCompanyInput').value||'').trim();
     var msg=q('#mpSelMsg'); if(msg) msg.style.display='none'; q('#mpCompanyInput').style.borderColor='';
     if(name){ openByName(name); return; }
-    var c={id:uid(),nombre:'Nueva MIPER',riesgos:[],updatedAt:Date.now()};
+    var c={id:uid(),nombre:'Nueva MIPER',riesgos:[],updatedAt:Date.now(),empresa:empresaDefault()};
     DB.companies.push(c); persist();
     q('#mpCompanyInput').value=''; showDetail(c.id);
   }
@@ -1526,7 +1625,10 @@ main.miper-wide{max-width:100%;margin:0}  /* MIPER: usa todo el ancho y queda pe
   });
   q('#mpBackBtn').addEventListener('click',showHome);
   q('#mpDelCompanyBtn').addEventListener('click',function(){ var c=findCompany(curId); if(c&&confirm('¿Borrar la empresa "'+c.nombre+'" y todos sus riesgos? No se puede deshacer.')){ DB.companies=DB.companies.filter(function(x){return x.id!==curId;}); persist(); showHome(); } });
-  q('#mpPrintBtn').addEventListener('click',function(){ q('#mpPrintDate').textContent=fdate(Date.now()); window.print(); });
+  q('#mpPrintBtn').addEventListener('click',function(){ q('#mpPrintDate').textContent=fdate(Date.now()); renderPrintHead(findCompany(curId)); window.print(); });
+  q('#mpEmpresaSaveBtn').addEventListener('click',saveEmpresa);
+  q('#e_nH').addEventListener('input',updateNTotal);
+  q('#e_nM').addEventListener('input',updateNTotal);
   q('#mpForm').addEventListener('submit',submitForm);
   q('#mpCancelBtn').addEventListener('click',resetForm);
   q('#f_p').addEventListener('change',updatePrev);
